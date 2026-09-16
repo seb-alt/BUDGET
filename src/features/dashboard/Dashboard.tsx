@@ -13,24 +13,13 @@ import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { resolveBudgetForMonth } from '../../db/budgets'
 import { db } from '../../db/db'
-import type { CategoryGroup } from '../../db/types'
 import { computeMonthSummary } from '../../domain/budget/monthSummary'
 import { addMonths, currentMonth, formatDayLabel, formatMonthLabel } from '../../utils/date'
 import { formatEurosCompact } from '../../utils/money'
+import { BudgetDonutChart } from './BudgetDonutChart'
+import { BudgetProgressChart } from './BudgetProgressChart'
+import { BUDGET_GROUPS } from './groups'
 import './Dashboard.css'
-
-/** Les trois cartes budgétaires, et la façon de les résumer quand elles sont repliées. */
-const BUDGET_CARDS: {
-  group: CategoryGroup
-  title: string
-  /** Quel chiffre met-on en avant : ce qu'il reste, ou ce qui est déjà parti ? */
-  headline: 'remaining' | 'spent'
-  headlineWord: string
-}[] = [
-  { group: 'chargesFixes', title: 'Charges fixes', headline: 'spent', headlineWord: 'payés' },
-  { group: 'epargne', title: 'Épargne & investissement', headline: 'spent', headlineWord: 'versés' },
-  { group: 'loisirs', title: 'Loisirs', headline: 'remaining', headlineWord: 'disponibles' },
-]
 
 export function Dashboard() {
   const [month, setMonth] = useState(currentMonth())
@@ -135,22 +124,31 @@ export function Dashboard() {
         />
       </section>
 
-      {BUDGET_CARDS.map((card) => {
+      {BUDGET_GROUPS.map((card) => {
         const group = summary.byGroup[card.group]
         const groupCategories = categories.filter(
           (category) => category.group === card.group && category.active,
         )
-        const headlineAmount = card.headline === 'remaining' ? group.remaining : group.spent
 
         return (
           <details key={card.group} className="dash-card">
             <summary>
-              <span className="dash-card-title">{card.title}</span>
+              <span className="dash-card-title">
+                <span className="chart-dot" style={{ background: card.color }} aria-hidden="true" />
+                {card.title}
+              </span>
+
+              {/* En gros : ce qu'il te reste — le chiffre qui sert à décider.
+                  En petit juste en dessous : ce qui est déjà parti, sur le
+                  total de l'enveloppe. */}
               <span className="dash-card-headline tabular">
-                <strong className={headlineAmount < 0 ? 'is-negative' : undefined}>
-                  {formatEurosCompact(headlineAmount)}
+                <strong className={group.remaining < 0 ? 'is-negative' : undefined}>
+                  {formatEurosCompact(group.remaining)}
                 </strong>{' '}
-                {card.headlineWord} / {formatEurosCompact(group.budget)}
+                {card.remainingWord}
+              </span>
+              <span className="dash-card-used tabular">
+                {formatEurosCompact(group.spent)} / {formatEurosCompact(group.budget)} utilisés
               </span>
             </summary>
 
@@ -236,6 +234,9 @@ export function Dashboard() {
           ))
         )}
       </section>
+
+      <BudgetProgressChart summary={summary} categories={categories} />
+      <BudgetDonutChart summary={summary} />
     </div>
   )
 }

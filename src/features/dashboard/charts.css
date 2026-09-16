@@ -1,0 +1,200 @@
+/* Styles communs aux deux graphiques du Dashboard. */
+
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-4);
+}
+
+.chart-card h2 {
+  margin: 0 0 var(--space-1);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.chart-subtitle {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.chart-empty {
+  margin: var(--space-4) 0 0;
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+}
+
+/* La pastille de couleur porte l'identité du groupe, à côté du texte —
+   jamais en colorant le texte lui-même. */
+.chart-dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 999px;
+  flex: none;
+}
+
+/* --- Graphique en barres ---------------------------------------------- */
+
+.chart-group {
+  margin-top: var(--space-5);
+}
+
+.chart-group h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.chart-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.chart-row-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+  font-size: 0.875rem;
+}
+
+.chart-row-value {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Le rail est la MÊME teinte que la barre, très diluée : l'état se lit sur
+   toute la longueur, pas seulement sur la partie remplie. La couleur vient de
+   --row-color, posée sur la ligne par le composant. */
+.chart-track {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--row-color, var(--text-muted)) 20%, var(--surface));
+  overflow: hidden;
+}
+
+.chart-fill {
+  height: 100%;
+  background: var(--row-color, var(--text-muted));
+  /* Carré au départ, arrondi à l'extrémité : le bout arrondi marque la
+     donnée, le départ reste calé sur la ligne de base. */
+  border-radius: 0 999px 999px 0;
+  transition: width 220ms ease;
+}
+
+.chart-row-note {
+  margin: var(--space-2) 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-row-note.is-over {
+  color: var(--chart-over);
+  font-weight: 600;
+}
+
+/* --- Graphique en secteurs -------------------------------------------- */
+
+.chart-toggle {
+  margin-top: var(--space-3);
+}
+
+.donut {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.donut-svg {
+  width: 100%;
+  max-width: 15rem;
+  height: auto;
+}
+
+.donut-slice {
+  transition: opacity 150ms ease;
+  cursor: default;
+}
+
+.donut-slice.is-dimmed,
+.donut-legend li.is-dimmed {
+  opacity: 0.35;
+}
+
+.donut-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  fill: var(--text-muted);
+}
+
+.donut-center-value {
+  font-size: 1.125rem;
+  font-weight: 650;
+  fill: var(--text);
+}
+
+.donut-center-label {
+  font-size: 0.625rem;
+  fill: var(--text-muted);
+}
+
+.donut-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.donut-legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  transition: opacity 150ms ease;
+}
+
+.donut-legend-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.donut-legend-value {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* --- Ordinateur : le camembert et sa légende côte à côte -------------- */
+
+@media (min-width: 30rem) {
+  .donut {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-5);
+  }
+
+  .donut-svg {
+    max-width: 13rem;
+  }
+}

@@ -25,7 +25,7 @@ npm run lint    # analyse le code
 src/
   app/App.tsx           # coquille : navigation basse et bouton +
   features/
-    dashboard/          # accueil : indicateurs, cartes budget, dernières opérations
+    dashboard/          # accueil : indicateurs, cartes budget, graphiques
     operations/         # écran de saisie d'une opération
   domain/
     budget/             # LES CALCULS, en TypeScript pur, sans React ni Dexie
@@ -70,12 +70,24 @@ se met alors à jour au lieu d'être effacée.
 ## État d'avancement
 
 - [x] **Étape 1** — socle : projet Vite, Dexie, modèle de données, remplissage initial
-- [x] **Étape 2** — saisie d'une opération, Dashboard de base, navigation
+- [x] **Étape 2** — saisie d'une opération, Dashboard, navigation, graphiques
 - [ ] **Étape 3** — onglet Opérations : liste complète, recherche, filtres, édition
 - [ ] Moteur d'épargne flexible et répartition LEP / PEA
 - [ ] Écran Paramètres, graphiques, Patrimoine, Micro
 - [ ] Export / sauvegarde / restauration
 - [ ] PWA installable
+
+### Graphiques
+
+Dessinés à la main en SVG, sans bibliothèque : l'application reste légère, les
+couleurs suivent les variables du thème (donc le mode sombre fonctionne sans
+code supplémentaire) et il n'y a aucune dépendance extérieure à maintenir.
+
+Les trois couleurs de groupe (`--chart-1/2/3` dans `src/index.css`) ont été
+vérifiées par script : elles restent distinguables pour les principales formes
+de daltonisme et lisibles sur fond clair comme sur fond sombre. **Ne pas les
+changer sans revalider.** Le rouge `--chart-over` est réservé au dépassement et
+ne sert jamais de couleur de série.
 
 ### Décisions en attente
 

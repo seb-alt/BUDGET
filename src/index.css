@@ -53,6 +53,20 @@
   /* Hauteur de la barre de navigation, réutilisée pour les marges du bas. */
   --nav-height: 4.25rem;
 
+  /* --- Couleurs des graphiques ----------------------------------------
+     Une couleur par groupe budgétaire, la MÊME dans tous les graphiques :
+     le bleu veut toujours dire « charges fixes », partout.
+     Ces trois teintes ont été vérifiées par script : elles restent
+     distinguables pour les principales formes de daltonisme, et lisibles
+     sur le fond clair comme sur le fond sombre. Ne pas les changer sans
+     revalider. */
+  --chart-1: #2a78d6; /* charges fixes */
+  --chart-2: #eb6834; /* épargne & investissement */
+  --chart-3: #1baf7a; /* loisirs */
+  /* Couleur d'alerte, réservée au dépassement. Jamais utilisée comme
+     couleur de série, pour qu'elle garde son sens. */
+  --chart-over: #d03b3b;
+
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
   color: var(--text);
@@ -83,6 +97,13 @@
 
     --shadow-card: none;
     --shadow-raised: 0 4px 16px rgb(0 0 0 / 0.45);
+
+    /* Mêmes teintes, redosées pour le fond sombre — pas un simple
+       éclaircissement automatique : chaque valeur a été revalidée. */
+    --chart-1: #3987e5;
+    --chart-2: #d95926;
+    --chart-3: #199e70;
+    --chart-over: #d03b3b;
   }
 }
 
