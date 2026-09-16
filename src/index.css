@@ -123,6 +123,15 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Pastille d'identité d'un groupe budgétaire. Elle se pose À CÔTÉ du texte :
+   on ne colore jamais le texte lui-même, qui deviendrait illisible. */
+.color-dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 999px;
+  flex: none;
+}
+
 button {
   font: inherit;
   color: inherit;

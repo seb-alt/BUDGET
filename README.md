@@ -79,9 +79,15 @@ se met alors à jour au lieu d'être effacée.
 
 ### Graphiques
 
-Dessinés à la main en SVG, sans bibliothèque : l'application reste légère, les
-couleurs suivent les variables du thème (donc le mode sombre fonctionne sans
-code supplémentaire) et il n'y a aucune dépendance extérieure à maintenir.
+Le Dashboard montre l'avancement de deux façons complémentaires : une barre de
+jauge sur chaque carte budgétaire (repliée : le total du groupe ; dépliée : le
+détail par sous-catégorie), et un graphique en secteurs pour la répartition
+d'ensemble.
+
+Tout est dessiné à la main en SVG et en CSS, sans bibliothèque : l'application
+reste légère, les couleurs suivent les variables du thème (donc le mode sombre
+fonctionne sans code supplémentaire) et il n'y a aucune dépendance extérieure à
+maintenir.
 
 Les trois couleurs de groupe (`--chart-1/2/3` dans `src/index.css`) ont été
 vérifiées par script : elles restent distinguables pour les principales formes

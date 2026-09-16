@@ -1,4 +1,4 @@
-/* Styles communs aux deux graphiques du Dashboard. */
+/* Styles du graphique en secteurs du Dashboard. */
 
 .chart-card {
   background: var(--surface);
@@ -27,87 +27,6 @@
   margin: var(--space-4) 0 0;
   font-size: 0.9375rem;
   color: var(--text-muted);
-}
-
-/* La pastille de couleur porte l'identité du groupe, à côté du texte —
-   jamais en colorant le texte lui-même. */
-.chart-dot {
-  width: 0.625rem;
-  height: 0.625rem;
-  border-radius: 999px;
-  flex: none;
-}
-
-/* --- Graphique en barres ---------------------------------------------- */
-
-.chart-group {
-  margin-top: var(--space-5);
-}
-
-.chart-group h3 {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin: 0 0 var(--space-3);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.chart-rows {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.chart-row-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: var(--space-3);
-  margin-bottom: var(--space-2);
-  font-size: 0.875rem;
-}
-
-.chart-row-value {
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-/* Le rail est la MÊME teinte que la barre, très diluée : l'état se lit sur
-   toute la longueur, pas seulement sur la partie remplie. La couleur vient de
-   --row-color, posée sur la ligne par le composant. */
-.chart-track {
-  height: 0.5rem;
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--row-color, var(--text-muted)) 20%, var(--surface));
-  overflow: hidden;
-}
-
-.chart-fill {
-  height: 100%;
-  background: var(--row-color, var(--text-muted));
-  /* Carré au départ, arrondi à l'extrémité : le bout arrondi marque la
-     donnée, le départ reste calé sur la ligne de base. */
-  border-radius: 0 999px 999px 0;
-  transition: width 220ms ease;
-}
-
-.chart-row-note {
-  margin: var(--space-2) 0 0;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.chart-row-note.is-over {
-  color: var(--chart-over);
-  font-weight: 600;
 }
 
 /* --- Graphique en secteurs -------------------------------------------- */

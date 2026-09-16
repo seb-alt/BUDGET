@@ -9,7 +9,7 @@
  * `computeMonthSummary` (dans domain/, testé), et affiche le résultat.
  */
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { resolveBudgetForMonth } from '../../db/budgets'
 import { db } from '../../db/db'
@@ -17,7 +17,6 @@ import { computeMonthSummary } from '../../domain/budget/monthSummary'
 import { addMonths, currentMonth, formatDayLabel, formatMonthLabel } from '../../utils/date'
 import { formatEurosCompact } from '../../utils/money'
 import { BudgetDonutChart } from './BudgetDonutChart'
-import { BudgetProgressChart } from './BudgetProgressChart'
 import { BUDGET_GROUPS } from './groups'
 import './Dashboard.css'
 
@@ -130,23 +129,62 @@ export function Dashboard() {
           (category) => category.group === card.group && category.active,
         )
 
+        // La barre est plafonnée à 100 % : au-delà, c'est la couleur et le
+        // montant en rouge qui portent l'information, pas une barre qui
+        // déborderait de son rail.
+        const groupRatio = group.budget > 0 ? Math.min(group.spent / group.budget, 1) : 0
+        const groupFilled = groupRatio * 100
+        const groupPercent = group.budget > 0 ? Math.round((group.spent / group.budget) * 100) : 0
+
         return (
-          <details key={card.group} className="dash-card">
+          /* --row-color descend dans toute la carte : la barre générale et les
+             barres de détail prennent la couleur du groupe, et le rail en
+             reprend une version diluée. Le rouge d'alerte remplace la couleur
+             du groupe en cas de dépassement — mais la pastille d'identité, elle,
+             ne change jamais. */
+          <details
+            key={card.group}
+            className="dash-card"
+            style={
+              {
+                '--row-color': group.remaining < 0 ? 'var(--chart-over)' : card.color,
+              } as CSSProperties
+            }
+          >
             <summary>
               <span className="dash-card-title">
-                <span className="chart-dot" style={{ background: card.color }} aria-hidden="true" />
+                <span className="color-dot" style={{ background: card.color }} aria-hidden="true" />
                 {card.title}
               </span>
 
               {/* En gros : ce qu'il te reste — le chiffre qui sert à décider.
-                  En petit juste en dessous : ce qui est déjà parti, sur le
-                  total de l'enveloppe. */}
+                  Puis la barre, pour saisir la proportion sans lire.
+                  En petit : ce qui est déjà parti, sur le total de l'enveloppe. */}
+              {/* « −65,50 € disponibles » ne veut rien dire : en cas de
+                  dépassement on change la phrase, pas seulement le signe. */}
               <span className="dash-card-headline tabular">
-                <strong className={group.remaining < 0 ? 'is-negative' : undefined}>
-                  {formatEurosCompact(group.remaining)}
-                </strong>{' '}
-                {card.remainingWord}
+                {group.remaining < 0 ? (
+                  <>
+                    <strong className="is-negative">
+                      {formatEurosCompact(-group.remaining)}
+                    </strong>{' '}
+                    de dépassement
+                  </>
+                ) : (
+                  <>
+                    <strong>{formatEurosCompact(group.remaining)}</strong> {card.remainingWord}
+                  </>
+                )}
               </span>
+
+              <span
+                className="dash-bar dash-card-bar"
+                role="img"
+                aria-label={`${groupPercent} % du budget utilisé`}
+              >
+                <span className="dash-bar-fill" style={{ width: `${groupFilled}%` }} />
+              </span>
+
               <span className="dash-card-used tabular">
                 {formatEurosCompact(group.spent)} / {formatEurosCompact(group.budget)} utilisés
               </span>
@@ -160,7 +198,16 @@ export function Dashboard() {
                   progress.budget > 0 ? Math.min(progress.spent / progress.budget, 1) : 0
 
                 return (
-                  <li key={category.id} className="dash-line">
+                  <li
+                    key={category.id}
+                    className="dash-line"
+                    style={
+                      {
+                        '--row-color':
+                          progress.remaining < 0 ? 'var(--chart-over)' : card.color,
+                      } as CSSProperties
+                    }
+                  >
                     <div className="dash-line-head">
                       <span>{category.name}</span>
                       <span className="tabular">
@@ -172,10 +219,7 @@ export function Dashboard() {
                       role="img"
                       aria-label={`${Math.round(ratio * 100)} % du budget utilisé`}
                     >
-                      <div
-                        className={`dash-bar-fill${progress.remaining < 0 ? ' is-over' : ''}`}
-                        style={{ width: `${ratio * 100}%` }}
-                      />
+                      <div className="dash-bar-fill" style={{ width: `${ratio * 100}%` }} />
                     </div>
                     <p className={`dash-line-rest${progress.remaining < 0 ? ' is-negative' : ''}`}>
                       {progress.remaining < 0
@@ -235,7 +279,6 @@ export function Dashboard() {
         )}
       </section>
 
-      <BudgetProgressChart summary={summary} categories={categories} />
       <BudgetDonutChart summary={summary} />
     </div>
   )

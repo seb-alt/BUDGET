@@ -122,7 +122,7 @@ export function BudgetDonutChart({ summary }: { summary: MonthSummary }) {
               onMouseEnter={() => setFocused(segment.key)}
               onMouseLeave={() => setFocused(undefined)}
             >
-              <span className="chart-dot" style={{ background: segment.color }} aria-hidden="true" />
+              <span className="color-dot" style={{ background: segment.color }} aria-hidden="true" />
               <span className="donut-legend-name">{segment.label}</span>
               <span className="donut-legend-value tabular">
                 {formatEurosCompact(segment.value)}

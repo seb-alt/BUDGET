@@ -197,21 +197,34 @@
   margin-bottom: var(--space-2);
 }
 
+/* Le rail reprend la teinte de sa barre, très diluée : l'état se lit sur
+   toute la longueur, pas seulement sur la partie remplie. La couleur vient
+   de --row-color, posée par le composant sur la carte ou sur la ligne. */
 .dash-bar {
+  display: block;
   height: 0.375rem;
   border-radius: 999px;
-  background: var(--surface-sunken);
+  background: color-mix(in oklab, var(--row-color, var(--text-muted)) 20%, var(--surface));
   overflow: hidden;
 }
 
 .dash-bar-fill {
+  display: block;
   height: 100%;
-  border-radius: 999px;
-  background: var(--accent);
+  background: var(--row-color, var(--text-muted));
+  /* Carré au départ, arrondi à l'extrémité : le bout arrondi marque la
+     donnée, le départ reste calé sur la ligne de base. */
+  border-radius: 0 999px 999px 0;
+  transition: width 220ms ease;
 }
 
-.dash-bar-fill.is-over {
-  background: var(--negative);
+/* La barre générale de la carte, un peu plus épaisse que celles du détail :
+   c'est elle qu'on lit en premier, carte repliée. */
+.dash-card-bar {
+  height: 0.5rem;
+  margin: var(--space-2) 0 var(--space-1);
+  /* Laisse la place au chevron, qui est positionné à droite du résumé. */
+  margin-right: var(--space-5);
 }
 
 .dash-line-rest {
