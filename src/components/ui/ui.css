@@ -1,0 +1,147 @@
+/* Styles des briques réutilisables de src/components/ui/. */
+
+/* --- Carte ------------------------------------------------------------- */
+
+.ui-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+
+/* --- Sélecteur segmenté (Dépense | Entrée | Transfert) ----------------- */
+
+.ui-segmented {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+
+.ui-segmented button {
+  appearance: none;
+  border: none;
+  background: transparent;
+  border-radius: calc(var(--radius-sm) - 0.125rem);
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.ui-segmented button:hover {
+  color: var(--text);
+}
+
+.ui-segmented button[aria-pressed='true'] {
+  background: var(--surface-raised);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: var(--shadow-card);
+}
+
+/* --- Grille de boutons de choix (catégories) --------------------------- */
+
+.ui-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ui-choice {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.9375rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.ui-choice:hover {
+  border-color: var(--accent);
+}
+
+.ui-choice[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+/* --- Panneau plein écran (saisie) -------------------------------------- */
+
+.ui-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(15 23 42 / 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+}
+
+.ui-sheet {
+  background: var(--bg);
+  width: 100%;
+  max-width: 30rem;
+  max-height: 100dvh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 40rem) {
+  .ui-sheet-backdrop {
+    align-items: center;
+    padding: var(--space-4);
+  }
+
+  .ui-sheet {
+    height: auto;
+    max-height: min(46rem, 92dvh);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-raised);
+  }
+}
+
+.ui-sheet-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.ui-sheet-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ui-sheet-close {
+  appearance: none;
+  border: none;
+  background: transparent;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.ui-sheet-close:hover {
+  background: var(--surface-sunken);
+  color: var(--text);
+}

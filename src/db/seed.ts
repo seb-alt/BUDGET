@@ -123,8 +123,8 @@ const seedCategories = (): Category[] => [
   { id: CATEGORY_IDS.impots, name: 'Impôts', kind: 'expense', group: 'chargesFixes', order: 4, active: true, quickPick: true },
 
   /* --- ÉPARGNE / INVESTISSEMENT : 850 € ---------------------------- */
-  { id: CATEGORY_IDS.assuranceVie, name: 'Assurance-vie', kind: 'saving', group: 'epargne', order: 1, active: true },
-  { id: CATEGORY_IDS.epargneFlexible, name: 'Enveloppe flexible LEP / PEA', kind: 'saving', group: 'epargne', order: 2, active: true },
+  { id: CATEGORY_IDS.assuranceVie, name: 'Assurance-vie', kind: 'saving', group: 'epargne', order: 1, active: true, savingAccountIds: [ACCOUNT_IDS.assuranceVie] },
+  { id: CATEGORY_IDS.epargneFlexible, name: 'Enveloppe flexible LEP / PEA', kind: 'saving', group: 'epargne', order: 2, active: true, savingAccountIds: [ACCOUNT_IDS.lep, ACCOUNT_IDS.pea] },
 
   /* --- LOISIRS : 350 € --------------------------------------------- */
   { id: CATEGORY_IDS.sorties, name: 'Sorties', kind: 'expense', group: 'loisirs', order: 1, active: true, quickPick: true },

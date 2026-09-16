@@ -82,6 +82,15 @@ export interface Category {
   active: boolean
   /** Dépense de la micro-entreprise (cahier des charges §14 : pas de table séparée). */
   isMicro?: boolean
+  /**
+   * Uniquement pour les catégories `kind: 'saving'` : les comptes alimentés par
+   * cette enveloppe. L'enveloppe flexible pointe vers le LEP et le PEA, celle
+   * de l'assurance-vie vers le compte assurance-vie.
+   *
+   * Grâce à ça, le Dashboard n'a besoin de connaître AUCUN identifiant de
+   * catégorie en dur : il lit la correspondance depuis la base.
+   */
+  savingAccountIds?: string[]
   /** Affichée comme bouton d'accès rapide dans l'écran "Nouvelle opération". */
   quickPick?: boolean
 }

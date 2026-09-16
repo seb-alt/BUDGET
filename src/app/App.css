@@ -1,0 +1,103 @@
+/* Mise en page générale : contenu défilant + barre de navigation fixe. */
+
+.app {
+  min-height: 100dvh;
+}
+
+.app-main {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-4)
+    calc(var(--nav-height) + var(--space-6) + env(safe-area-inset-bottom));
+}
+
+.app-placeholder {
+  padding: var(--space-6) 0;
+  text-align: center;
+}
+
+.app-placeholder h1 {
+  margin: 0 0 var(--space-2);
+  font-size: 1.25rem;
+}
+
+.app-placeholder p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+/* --- Barre de navigation basse ---------------------------------------- */
+
+.app-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  height: calc(var(--nav-height) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.app-nav-button {
+  appearance: none;
+  border: none;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) 0;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.app-nav-button[aria-current='page'] {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Le bouton + est surélevé : il dépasse de la barre pour être la cible la
+   plus évidente de l'écran — c'est le geste le plus fréquent. */
+.app-add {
+  appearance: none;
+  border: none;
+  justify-self: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin-top: -1.5rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-raised);
+  cursor: pointer;
+}
+
+.app-add:active {
+  transform: scale(0.96);
+}
+
+/* --- Message de confirmation ------------------------------------------ */
+
+.app-toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--nav-height) + var(--space-4) + env(safe-area-inset-bottom));
+  z-index: 30;
+  margin: 0;
+  padding: var(--space-3) var(--space-5);
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 0.875rem;
+  box-shadow: var(--shadow-raised);
+}

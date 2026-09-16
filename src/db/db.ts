@@ -78,6 +78,29 @@ export class BudgetDatabase extends Dexie {
       settings: 'id',
       microSettings: 'id',
     })
+
+    // --- VERSION 2 : ajout du champ `savingAccountIds` sur les catégories
+    // d'épargne. Aucun index ne change, donc pas de nouveau `.stores()` : la
+    // version 2 hérite du schéma de la version 1.
+    //
+    // `upgrade()` ne s'exécute QUE sur une base déjà existante en version 1.
+    // Sur une base neuve, c'est `seed.ts` qui pose directement la bonne valeur.
+    // Les identifiants sont écrits en dur ici volontairement : une migration
+    // est une photo du passé, elle ne doit pas dépendre du code d'aujourd'hui.
+    this.version(2).upgrade(async (transaction) => {
+      const backfill: Record<string, string[]> = {
+        'cat-assurance-vie': ['acc-assurance-vie'],
+        'cat-epargne-flexible': ['acc-lep', 'acc-pea'],
+      }
+
+      const categories = transaction.table<Category>('categories')
+      for (const [categoryId, savingAccountIds] of Object.entries(backfill)) {
+        const existing = await categories.get(categoryId)
+        if (existing !== undefined && existing.savingAccountIds === undefined) {
+          await categories.update(categoryId, { savingAccountIds })
+        }
+      }
+    })
   }
 }
 

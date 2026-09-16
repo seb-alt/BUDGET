@@ -14,6 +14,7 @@ npm run dev     # lance le serveur, puis ouvre l'adresse affichée
 Autres commandes utiles :
 
 ```bash
+npm test        # lance les tests des calculs (doit être vert avant tout commit)
 npm run build   # vérifie les types et construit la version de production
 npm run lint    # analyse le code
 ```
@@ -22,15 +23,26 @@ npm run lint    # analyse le code
 
 ```
 src/
+  app/App.tsx           # coquille : navigation basse et bouton +
+  features/
+    dashboard/          # accueil : indicateurs, cartes budget, dernières opérations
+    operations/         # écran de saisie d'une opération
+  domain/
+    budget/             # LES CALCULS, en TypeScript pur, sans React ni Dexie
+  components/ui/        # briques réutilisables (panneau, boutons de choix…)
   db/
-    types.ts     # la forme de chaque donnée (dictionnaire)
-    db.ts        # les tables IndexedDB et leurs versions (classeur)
-    seed.ts      # comptes, catégories et réglages créés au premier lancement
-  utils/
-    money.ts     # conversion centimes <-> euros et formatage
-  App.tsx        # écran temporaire de vérification du socle
-  main.tsx       # point d'entrée : remplit la base puis affiche React
+    types.ts            # la forme de chaque donnée (dictionnaire)
+    db.ts               # les tables IndexedDB et leurs versions (classeur)
+    seed.ts             # comptes, catégories et réglages du premier lancement
+    transactions.ts     # écriture et validation des opérations
+    budgets.ts          # quel budget s'applique à quel mois
+  utils/                # dates, montants
+  main.tsx              # point d'entrée : remplit la base puis affiche React
 ```
+
+La règle d'or : `domain/` ne connaît ni React ni la base de données. Il reçoit
+des données, il renvoie des chiffres. C'est ce qui rend les calculs testables
+isolément — et c'est là que vivent les règles métier importantes.
 
 ## Deux conventions à connaître
 
@@ -43,6 +55,11 @@ uniquement à l'affichage, dans `src/utils/money.ts`.
 taux URSSAF, délais de paiement : tout vient de la base (`settings`, `microSettings`,
 `categories`) et sera modifiable depuis l'écran Paramètres.
 
+**Trois règles de calcul, appliquées dans `domain/budget/monthSummary.ts` :**
+un transfert n'est jamais une dépense ; l'épargne du mois ne compte que l'argent
+qui entre dans la poche épargne (un virement LEP → PEA ne crée rien) ; la
+micro-entreprise ne se mélange jamais au budget personnel.
+
 ## Faire évoluer la base de données
 
 Le schéma est versionné dans `src/db/db.ts`. Une version publiée **ne se modifie
@@ -53,7 +70,15 @@ se met alors à jour au lieu d'être effacée.
 ## État d'avancement
 
 - [x] **Étape 1** — socle : projet Vite, Dexie, modèle de données, remplissage initial
-- [ ] **Étape 2** — écran « Nouvelle opération » branché sur la table `transactions`
-- [ ] Dashboard, Opérations, Patrimoine, Micro, Paramètres
+- [x] **Étape 2** — saisie d'une opération, Dashboard de base, navigation
+- [ ] **Étape 3** — onglet Opérations : liste complète, recherche, filtres, édition
+- [ ] Moteur d'épargne flexible et répartition LEP / PEA
+- [ ] Écran Paramètres, graphiques, Patrimoine, Micro
 - [ ] Export / sauvegarde / restauration
 - [ ] PWA installable
+
+### Décisions en attente
+
+- **Quand un budget mensuel se fige-t-il ?** (§11) La lecture est en place dans
+  `db/budgets.ts`, mais rien n'écrit encore dans `monthlyBudgets` : il faut
+  choisir le déclencheur (première opération du mois / clôture / manuel).
