@@ -16,6 +16,7 @@ import { Dashboard } from '../features/dashboard/Dashboard'
 import { OperationSheet } from '../features/operations/OperationSheet'
 import { OperationsList } from '../features/operations/OperationsList'
 import { BalancesSheet } from '../features/patrimony/BalancesSheet'
+import { PatrimonyScreen } from '../features/patrimony/PatrimonyScreen'
 import { SettingsSheet } from '../features/settings/SettingsSheet'
 import type { Transaction } from '../db/types'
 import './App.css'
@@ -75,8 +76,7 @@ const TABS: { id: Tab; label: string; icon: ReactElement }[] = [
   },
 ]
 
-const PLACEHOLDERS: Record<'patrimoine' | 'micro', string> = {
-  patrimoine: "L'onglet Patrimoine (soldes, courbes, prêt étudiant) n'est pas encore construit.",
+const PLACEHOLDERS: Record<'micro', string> = {
   micro: "L'onglet Micro-entreprise (factures, clients, URSSAF) n'est pas encore construit.",
 }
 
@@ -133,7 +133,10 @@ export default function App() {
         {tab === 'operations' && (
           <OperationsList onEdit={(transaction) => setSheet({ transaction })} />
         )}
-        {(tab === 'patrimoine' || tab === 'micro') && (
+        {tab === 'patrimoine' && (
+          <PatrimonyScreen onUpdateBalances={() => setBalancesOpen(true)} />
+        )}
+        {tab === 'micro' && (
           <div className="app-placeholder">
             <h1>{TABS.find((item) => item.id === tab)?.label}</h1>
             <p>{PLACEHOLDERS[tab]}</p>

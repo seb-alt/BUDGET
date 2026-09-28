@@ -137,3 +137,46 @@ describe('plusieurs comptes d’un coup', () => {
     expect(balances.get('pea')?.balance).toBe(0)
   })
 })
+
+describe('solde à une date passée', () => {
+  const transactions = [
+    tx({ type: 'income', amount: 100000, accountId: 'cic', date: '2026-07-10' }),
+    tx({ type: 'expense', amount: 20000, accountId: 'cic', date: '2026-08-10' }),
+    tx({ type: 'expense', amount: 30000, accountId: 'cic', date: '2026-09-10' }),
+  ]
+
+  it('ignore les opérations postérieures à la date demandée', () => {
+    expect(computeAccountBalance('cic', transactions, [], '2026-08-31').balance).toBe(80000)
+    expect(computeAccountBalance('cic', transactions, [], '2026-07-31').balance).toBe(100000)
+  })
+
+  it('inclut les opérations du jour demandé', () => {
+    expect(computeAccountBalance('cic', transactions, [], '2026-09-10').balance).toBe(50000)
+  })
+
+  it('vaut zéro avant la première opération', () => {
+    expect(computeAccountBalance('cic', transactions, [], '2026-06-30').balance).toBe(0)
+  })
+
+  it('ignore un relevé POSTÉRIEUR à la date demandée', () => {
+    // Un relevé de septembre ne dit rien du solde qu'on avait en juillet.
+    const balance = computeAccountBalance(
+      'cic',
+      transactions,
+      [snapshot('2026-09-01', { cic: 999999 })],
+      '2026-08-31',
+    )
+    expect(balance.balance).toBe(80000)
+  })
+
+  it('utilise le dernier relevé antérieur à la date demandée', () => {
+    const balance = computeAccountBalance(
+      'cic',
+      transactions,
+      [snapshot('2026-08-01', { cic: 150000 })],
+      '2026-08-31',
+    )
+    // 1 500 € au 1er août, moins les 200 € du 10 août.
+    expect(balance.balance).toBe(130000)
+  })
+})

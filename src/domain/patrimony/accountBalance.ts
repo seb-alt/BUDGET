@@ -31,7 +31,7 @@ export interface AccountBalance {
 }
 
 /** Effet d'une opération sur un compte donné. Zéro si elle ne le concerne pas. */
-function movement(transaction: Transaction, accountId: string): Cents {
+export function movement(transaction: Transaction, accountId: string): Cents {
   if (transaction.type === 'transfer') {
     if (transaction.fromAccountId === accountId) return -transaction.amount
     if (transaction.toAccountId === accountId) return transaction.amount
@@ -46,11 +46,21 @@ export function computeAccountBalances(
   accountIds: string[],
   transactions: Transaction[],
   snapshots: PatrimonySnapshot[],
+  /**
+   * Solde tel qu'il était à CETTE date (incluse). Sans elle, le solde
+   * d'aujourd'hui. C'est ce paramètre qui permet de tracer une courbe
+   * d'évolution : on redemande le solde à chaque fin de mois.
+   */
+  asOf?: IsoDate,
 ): Map<string, AccountBalance> {
+  const relevantSnapshots = (
+    asOf === undefined ? snapshots : snapshots.filter((snapshot) => snapshot.date <= asOf)
+  ).sort((a, b) => a.date.localeCompare(b.date))
+
   // Le relevé le plus récent gagne, compte par compte : un relevé peut très
   // bien ne concerner qu'une partie des comptes.
   const startingPoints = new Map<string, { balance: Cents; date: IsoDate }>()
-  for (const snapshot of [...snapshots].sort((a, b) => a.date.localeCompare(b.date))) {
+  for (const snapshot of relevantSnapshots) {
     for (const entry of snapshot.balances) {
       startingPoints.set(entry.accountId, { balance: entry.balance, date: snapshot.date })
     }
@@ -62,6 +72,7 @@ export function computeAccountBalances(
     let balance = start?.balance ?? 0
 
     for (const transaction of transactions) {
+      if (asOf !== undefined && transaction.date > asOf) continue
       if (start !== undefined && transaction.date <= start.date) continue
       balance += movement(transaction, accountId)
     }
@@ -77,9 +88,10 @@ export function computeAccountBalance(
   accountId: string,
   transactions: Transaction[],
   snapshots: PatrimonySnapshot[],
+  asOf?: IsoDate,
 ): AccountBalance {
   return (
-    computeAccountBalances([accountId], transactions, snapshots).get(accountId) ?? {
+    computeAccountBalances([accountId], transactions, snapshots, asOf).get(accountId) ?? {
       accountId,
       balance: 0,
     }

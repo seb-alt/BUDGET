@@ -35,7 +35,9 @@ src/
     operations/         # recherche et filtres
     patrimony/          # soldes des comptes
     settings/           # règles des réglages
-  components/ui/        # briques réutilisables (panneau, boutons de choix…)
+  components/
+    ui/                 # briques réutilisables (panneau, boutons de choix…)
+    charts/             # graphiques partagés (anneau, courbe, barres)
   db/
     types.ts            # la forme de chaque donnée (dictionnaire)
     db.ts               # les tables IndexedDB et leurs versions (classeur)
@@ -82,7 +84,8 @@ se met alors à jour au lieu d'être effacée.
 - [x] **Étape 4** — moteur d'épargne flexible et répartition LEP / PEA
 - [x] **Étape 5** — écran Paramètres
 - [ ] Export Excel (§12) — **décision en attente, voir plus bas**
-- [ ] Onglets Patrimoine et Micro
+- [x] **Étape 7** — onglet Patrimoine
+- [ ] Onglet Micro (§9)
 - [ ] Opérations récurrentes (§7)
 - [x] **Étape 6** — sauvegarde, restauration et exports CSV
 - [ ] PWA installable
@@ -115,6 +118,31 @@ deux formulaires n'auraient plus validé la même chose.
 `put`), en conservant son identifiant et sa date de création. C'est ce qui
 garantit qu'en transformant une dépense en transfert, l'ancienne catégorie
 disparaît vraiment de la base au lieu d'y rester.
+
+### Patrimoine : versements contre performance (§8)
+
+La question centrale de cet onglet : ton assurance-vie passe de 8 000 € à
+8 600 €. Bonne nouvelle ? Impossible à dire sans savoir ce que tu y as mis. Si
+tu as versé 500 €, elle a gagné 100 €. Si tu as versé 700 €, elle a **perdu**
+100 € — et la hausse du solde te l'aurait caché.
+
+```
+variationDuSolde = soldeFin - soldeDebut      (lu dans tes relevés)
+versements       = somme des mouvements       (lu dans tes opérations)
+performance      = variationDuSolde - versements
+```
+
+**Le piège du capital préexistant.** Ton assurance-vie contient déjà 8 000 € le
+jour où tu commences à utiliser l'application. Calculer la performance depuis le
+1er janvier alors que le premier relevé date de septembre prendrait le solde de
+départ pour zéro — et ces 8 000 € apparaîtraient comme un gain. La performance
+n'est donc jamais constatée avant le premier relevé, et l'écran annonce depuis
+quelle date elle est calculée.
+
+**Deux ensembles de comptes, pas un.** L'effort d'épargne se mesure sur les
+poches qui *reçoivent*, la performance sur les seuls placements. Mesuré sur
+l'ensemble du patrimoine, un virement du compte courant vers le LEP
+s'annulerait avec lui-même et l'épargne afficherait zéro.
 
 ### Sauvegarde et restauration (§12)
 

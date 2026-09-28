@@ -63,6 +63,7 @@
   --chart-1: #2a78d6; /* charges fixes */
   --chart-2: #eb6834; /* épargne & investissement */
   --chart-3: #1baf7a; /* loisirs */
+  --chart-4: #eda100; /* 4e série : quatrième compte du patrimoine */
   /* Couleur d'alerte, réservée au dépassement. Jamais utilisée comme
      couleur de série, pour qu'elle garde son sens. */
   --chart-over: #d03b3b;
@@ -103,6 +104,7 @@
     --chart-1: #3987e5;
     --chart-2: #d95926;
     --chart-3: #199e70;
+    --chart-4: #c98500;
     --chart-over: #d03b3b;
   }
 }
