@@ -127,6 +127,7 @@ export default function App() {
           <Dashboard
             onShowAllOperations={() => setTab('operations')}
             onUpdateBalances={() => setBalancesOpen(true)}
+            onOpenSettings={() => setSettingsOpen(true)}
           />
         )}
         {tab === 'operations' && (

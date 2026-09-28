@@ -14,6 +14,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { Sheet } from '../../components/ui/Sheet'
 import { db } from '../../db/db'
 import { AccountsSection } from './AccountsSection'
+import { BackupSection } from './BackupSection'
 import { BudgetSection } from './BudgetSection'
 import { CategoriesSection } from './CategoriesSection'
 import { MicroSection } from './MicroSection'
@@ -90,6 +91,16 @@ export function SettingsSheet({ onClose, onSaved }: SettingsSheetProps) {
             </span>
           </summary>
           <MicroSection microSettings={microSettings} onSaved={onSaved} />
+        </details>
+
+        <details className="set-card">
+          <summary>
+            <span>Sauvegarde et export</span>
+            <span className="set-caret" aria-hidden="true">
+              ›
+            </span>
+          </summary>
+          <BackupSection settings={settings} onSaved={onSaved} />
         </details>
 
         <p className="set-todo">

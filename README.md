@@ -30,9 +30,11 @@ src/
     patrimony/          # saisie manuelle des soldes
     settings/           # écran Paramètres
   domain/
+    backup/             # format de sauvegarde, validation, CSV
     budget/             # LES CALCULS, en TypeScript pur, sans React ni Dexie
     operations/         # recherche et filtres
     patrimony/          # soldes des comptes
+    settings/           # règles des réglages
   components/ui/        # briques réutilisables (panneau, boutons de choix…)
   db/
     types.ts            # la forme de chaque donnée (dictionnaire)
@@ -79,8 +81,10 @@ se met alors à jour au lieu d'être effacée.
 - [x] **Gel des budgets mensuels** — un mois révolu ne bouge plus (§11)
 - [x] **Étape 4** — moteur d'épargne flexible et répartition LEP / PEA
 - [x] **Étape 5** — écran Paramètres
+- [ ] Export Excel (§12) — **décision en attente, voir plus bas**
 - [ ] Onglets Patrimoine et Micro
-- [ ] Export / sauvegarde / restauration
+- [ ] Opérations récurrentes (§7)
+- [x] **Étape 6** — sauvegarde, restauration et exports CSV
 - [ ] PWA installable
 
 ### Graphiques
@@ -111,6 +115,41 @@ deux formulaires n'auraient plus validé la même chose.
 `put`), en conservant son identifiant et sa date de création. C'est ce qui
 garantit qu'en transformant une dépense en transfert, l'ancienne catégorie
 disparaît vraiment de la base au lieu d'y rester.
+
+### Sauvegarde et restauration (§12)
+
+**Tes données ne vivent que dans ce navigateur.** Un nettoyage du stockage, un
+changement de machine ou un profil réinitialisé les efface sans prévenir. Le
+fichier `budget-backup-AAAA-MM-JJ.json` est la seule protection : il contient
+les onze tables et sait tout remettre en place. Range-le ailleurs que sur
+l'appareil qui fait tourner l'application.
+
+Le Dashboard rappelle discrètement de sauvegarder si aucune sauvegarde n'existe
+ou si la dernière date de plus de 30 jours.
+
+Trois précautions dans le code :
+
+- **La validation précède tout.** Restaurer remplace la base entière ; un
+  fichier étranger, illisible, ou produit par une version plus récente est
+  refusé avant que quoi que ce soit ne soit touché.
+- **La restauration est atomique.** Tout passe dans une seule transaction
+  Dexie : en cas d'échec, la base revient à son état d'avant. On ne peut pas se
+  retrouver à moitié restauré.
+- **La sauvegarde se date elle-même.** Sinon, restaurer un fichier ferait
+  réapparaître aussitôt le rappel « aucune sauvegarde », alors que les données
+  restaurées sont précisément celles de la sauvegarde en main.
+
+Les **CSV** (`transactions`, `budgets`, `patrimoine`, `micro_factures`,
+`micro_depenses`) servent à consulter et archiver, jamais à restaurer : ils
+perdent les réglages et les liens entre tables. Ils sont écrits pour qu'Excel en
+français les ouvre du premier coup — séparateur point-virgule, fins de ligne
+CRLF, marqueur UTF-8 en tête, montants en nombres à virgule sans symbole €.
+
+### Décision en attente : l'export Excel
+
+Le §12 prévoit un `.xlsx` multi-onglets. Produire ce format demande soit une
+bibliothèque (~1 Mo, à maintenir des années), soit un générateur maison
+(un `.xlsx` est une archive ZIP de fichiers XML). À trancher ensemble.
 
 ### Paramètres : ce qui est protégé
 

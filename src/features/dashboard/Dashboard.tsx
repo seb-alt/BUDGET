@@ -13,6 +13,7 @@ import { useMemo, useState, type CSSProperties } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { resolveMonthBudget } from '../../db/budgets'
 import { db } from '../../db/db'
+import { needsBackupReminder } from '../../domain/backup/backupFile'
 import { applyFlexibleEnvelope } from '../../domain/budget/budgetEngine'
 import { computeMonthSummary } from '../../domain/budget/monthSummary'
 import { computeAccountBalances } from '../../domain/patrimony/accountBalance'
@@ -26,9 +27,14 @@ import './Dashboard.css'
 interface DashboardProps {
   onShowAllOperations: () => void
   onUpdateBalances: () => void
+  onOpenSettings: () => void
 }
 
-export function Dashboard({ onShowAllOperations, onUpdateBalances }: DashboardProps) {
+export function Dashboard({
+  onShowAllOperations,
+  onUpdateBalances,
+  onOpenSettings,
+}: DashboardProps) {
   const [month, setMonth] = useState(currentMonth())
 
   const accounts = useLiveQuery(() => db.accounts.toArray(), [])
@@ -176,6 +182,16 @@ export function Dashboard({ onShowAllOperations, onUpdateBalances }: DashboardPr
           </button>
         )}
       </header>
+
+      {/* Rappel discret, pas une alerte : tes données ne vivent que dans ce
+          navigateur, et un nettoyage de stockage les effacerait sans prévenir. */}
+      {needsBackupReminder(settings.lastBackupAt, new Date()) && (
+        <button type="button" className="dash-backup" onClick={onOpenSettings}>
+          {settings.lastBackupAt === undefined
+            ? 'Tes données ne sont sauvegardées nulle part — en faire une copie'
+            : 'Ta dernière sauvegarde date de plus d’un mois — en refaire une'}
+        </button>
+      )}
 
       <section className="dash-indicators" aria-label="Indicateurs du mois">
         <Indicator label="Entrées du mois" amount={summary.income} tone="positive" />

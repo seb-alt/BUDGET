@@ -268,3 +268,109 @@
   color: var(--text-muted);
   text-align: center;
 }
+
+/* --- Sauvegarde et export ---------------------------------------------- */
+
+.set-backup-state {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.set-backup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.set-outline {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  min-height: 2.75rem;
+  padding: 0 var(--space-4);
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+
+.set-files {
+  list-style: none;
+  margin: var(--space-2) 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.set-files li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: 0.875rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.set-files button {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.8125rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.set-section input[type='file'] {
+  width: 100%;
+  font-size: 0.875rem;
+  margin: var(--space-2) 0;
+}
+
+.set-restore {
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--negative);
+  background: var(--negative-soft);
+  border-radius: var(--radius-sm);
+}
+
+.set-restore p {
+  margin: 0 0 var(--space-2);
+  font-size: 0.875rem;
+}
+
+.set-restore-warning {
+  color: var(--negative);
+}
+
+.set-restore-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.set-restore-actions button {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.set-restore-actions button.is-danger {
+  background: var(--negative);
+  border-color: var(--negative);
+  color: #fff;
+  font-weight: 600;
+}
+
+.set-section code {
+  font-size: 0.8125rem;
+  background: var(--surface-sunken);
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+}

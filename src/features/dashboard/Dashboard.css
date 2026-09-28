@@ -342,3 +342,23 @@
   color: var(--accent);
   cursor: pointer;
 }
+
+/* Pense-bête de sauvegarde. Volontairement sobre : le rouge est réservé aux
+   dépassements de budget, qui sont, eux, une information sur tes finances. */
+.dash-backup {
+  appearance: none;
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  text-align: left;
+  cursor: pointer;
+}
+
+.dash-backup:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
