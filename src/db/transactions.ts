@@ -11,7 +11,7 @@
  */
 
 import { db } from './db'
-import type { Cents, IsoDate, Transaction, TransactionType } from './types'
+import type { Cents, IsoDate, IsoTimestamp, Transaction, TransactionType } from './types'
 
 export interface NewTransactionInput {
   type: TransactionType
@@ -24,6 +24,8 @@ export interface NewTransactionInput {
   toAccountId?: string
   label?: string
   isMicro?: boolean
+  microInvoiceId?: string
+  recurringRuleId?: string
 }
 
 /**
@@ -61,6 +63,45 @@ export function validateTransaction(input: NewTransactionInput): string[] {
 }
 
 /**
+ * Construit la ligne à enregistrer.
+ *
+ * On n'écrit que les champs qui ont un sens pour ce type d'opération. C'est
+ * important à la MODIFICATION : si tu transformes une dépense en transfert,
+ * l'ancienne catégorie doit disparaître, pas rester dans un coin de la base.
+ * Comme on repart d'un objet neuf et qu'on remplace la ligne entière, c'est
+ * garanti.
+ */
+function buildTransaction(
+  input: NewTransactionInput,
+  identity: { id: string; createdAt: IsoTimestamp; updatedAt: IsoTimestamp },
+): Transaction {
+  const transaction: Transaction = {
+    id: identity.id,
+    type: input.type,
+    amount: input.amount,
+    date: input.date,
+    createdAt: identity.createdAt,
+    updatedAt: identity.updatedAt,
+  }
+
+  if (input.type === 'transfer') {
+    transaction.fromAccountId = input.fromAccountId
+    transaction.toAccountId = input.toAccountId
+  } else {
+    transaction.categoryId = input.categoryId
+    transaction.accountId = input.accountId
+  }
+
+  const label = input.label?.trim()
+  if (label) transaction.label = label
+  if (input.isMicro) transaction.isMicro = true
+  if (input.microInvoiceId) transaction.microInvoiceId = input.microInvoiceId
+  if (input.recurringRuleId) transaction.recurringRuleId = input.recurringRuleId
+
+  return transaction
+}
+
+/**
  * Enregistre une opération et renvoie son identifiant.
  * Lève une erreur si la validation échoue : on ne veut jamais d'une ligne
  * incohérente en base, même si un appel oubliait de vérifier avant.
@@ -72,30 +113,43 @@ export async function createTransaction(input: NewTransactionInput): Promise<str
   }
 
   const timestamp = new Date().toISOString()
-  const transaction: Transaction = {
+  const transaction = buildTransaction(input, {
     id: crypto.randomUUID(),
-    type: input.type,
-    amount: input.amount,
-    date: input.date,
     createdAt: timestamp,
     updatedAt: timestamp,
-  }
-
-  // On n'écrit que les champs réellement remplis : une clé à `undefined`
-  // encombre inutilement la base et brouille les index.
-  if (input.type === 'transfer') {
-    transaction.fromAccountId = input.fromAccountId
-    transaction.toAccountId = input.toAccountId
-  } else {
-    transaction.categoryId = input.categoryId
-    transaction.accountId = input.accountId
-  }
-  const label = input.label?.trim()
-  if (label) transaction.label = label
-  if (input.isMicro) transaction.isMicro = true
+  })
 
   await db.transactions.add(transaction)
   return transaction.id
+}
+
+/**
+ * Remplace une opération existante.
+ *
+ * On conserve son identifiant et sa date de création — c'est la même opération,
+ * corrigée, pas une nouvelle. Le reste est intégralement remplacé.
+ */
+export async function updateTransaction(
+  id: string,
+  input: NewTransactionInput,
+): Promise<void> {
+  const problems = validateTransaction(input)
+  if (problems.length > 0) {
+    throw new Error(`Opération invalide : ${problems.join(' ')}`)
+  }
+
+  const existing = await db.transactions.get(id)
+  if (existing === undefined) {
+    throw new Error("Cette opération n'existe plus.")
+  }
+
+  await db.transactions.put(
+    buildTransaction(input, {
+      id,
+      createdAt: existing.createdAt,
+      updatedAt: new Date().toISOString(),
+    }),
+  )
 }
 
 /** Supprime une opération. */

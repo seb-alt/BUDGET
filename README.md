@@ -26,7 +26,7 @@ src/
   app/App.tsx           # coquille : navigation basse et bouton +
   features/
     dashboard/          # accueil : indicateurs, cartes budget, graphiques
-    operations/         # écran de saisie d'une opération
+    operations/         # saisie d'une opération, et liste complète
   domain/
     budget/             # LES CALCULS, en TypeScript pur, sans React ni Dexie
   components/ui/        # briques réutilisables (panneau, boutons de choix…)
@@ -71,7 +71,7 @@ se met alors à jour au lieu d'être effacée.
 
 - [x] **Étape 1** — socle : projet Vite, Dexie, modèle de données, remplissage initial
 - [x] **Étape 2** — saisie d'une opération, Dashboard, navigation, graphiques
-- [ ] **Étape 3** — onglet Opérations : liste complète, recherche, filtres, édition
+- [x] **Étape 3** — onglet Opérations : liste, recherche, filtres, édition, suppression
 - [x] **Gel des budgets mensuels** — un mois révolu ne bouge plus (§11)
 - [ ] Moteur d'épargne flexible et répartition LEP / PEA
 - [ ] Écran Paramètres, graphiques, Patrimoine, Micro
@@ -95,6 +95,17 @@ vérifiées par script : elles restent distinguables pour les principales formes
 de daltonisme et lisibles sur fond clair comme sur fond sombre. **Ne pas les
 changer sans revalider.** Le rouge `--chart-over` est réservé au dépassement et
 ne sert jamais de couleur de série.
+
+### Un seul écran pour créer et pour modifier
+
+`OperationSheet` sert aux deux : on lui passe une opération existante, ou rien.
+Un second écran presque identique aurait divergé au premier changement, et les
+deux formulaires n'auraient plus validé la même chose.
+
+À la modification, la ligne est **remplacée entièrement** (`buildTransaction` +
+`put`), en conservant son identifiant et sa date de création. C'est ce qui
+garantit qu'en transformant une dépense en transfert, l'ancienne catégorie
+disparaît vraiment de la base au lieu d'y rester.
 
 ### Gel des budgets mensuels (§11)
 

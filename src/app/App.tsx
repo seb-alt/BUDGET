@@ -13,7 +13,9 @@
 
 import { useEffect, useState, type ReactElement } from 'react'
 import { Dashboard } from '../features/dashboard/Dashboard'
-import { NewOperationSheet } from '../features/operations/NewOperationSheet'
+import { OperationSheet } from '../features/operations/OperationSheet'
+import { OperationsList } from '../features/operations/OperationsList'
+import type { Transaction } from '../db/types'
 import './App.css'
 
 type Tab = 'accueil' | 'operations' | 'patrimoine' | 'micro'
@@ -71,15 +73,19 @@ const TABS: { id: Tab; label: string; icon: ReactElement }[] = [
   },
 ]
 
-const PLACEHOLDERS: Record<Exclude<Tab, 'accueil'>, string> = {
-  operations: 'La liste complète des opérations, avec recherche et filtres, arrive à la prochaine étape.',
+const PLACEHOLDERS: Record<'patrimoine' | 'micro', string> = {
   patrimoine: "L'onglet Patrimoine (soldes, courbes, prêt étudiant) n'est pas encore construit.",
   micro: "L'onglet Micro-entreprise (factures, clients, URSSAF) n'est pas encore construit.",
 }
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('accueil')
-  const [isNewOperationOpen, setNewOperationOpen] = useState(false)
+  /**
+   * Le panneau de saisie a trois états : fermé, ouvert en création, ouvert en
+   * modification d'une opération précise. Un seul état les porte tous les
+   * trois, pour qu'il soit impossible d'être « en création ET en modification ».
+   */
+  const [sheet, setSheet] = useState<{ transaction?: Transaction } | undefined>()
   const [toast, setToast] = useState<string>()
 
   // Le message de confirmation disparaît tout seul au bout de 2,5 secondes.
@@ -92,9 +98,11 @@ export default function App() {
   return (
     <div className="app">
       <main className="app-main">
-        {tab === 'accueil' ? (
-          <Dashboard />
-        ) : (
+        {tab === 'accueil' && <Dashboard onShowAllOperations={() => setTab('operations')} />}
+        {tab === 'operations' && (
+          <OperationsList onEdit={(transaction) => setSheet({ transaction })} />
+        )}
+        {(tab === 'patrimoine' || tab === 'micro') && (
           <div className="app-placeholder">
             <h1>{TABS.find((item) => item.id === tab)?.label}</h1>
             <p>{PLACEHOLDERS[tab]}</p>
@@ -117,7 +125,7 @@ export default function App() {
           type="button"
           className="app-add"
           aria-label="Nouvelle opération"
-          onClick={() => setNewOperationOpen(true)}
+          onClick={() => setSheet({})}
         >
           <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
             <path d="M13 6v14M6 13h14" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" />
@@ -129,9 +137,14 @@ export default function App() {
         ))}
       </nav>
 
-      {isNewOperationOpen && (
-        <NewOperationSheet
-          onClose={() => setNewOperationOpen(false)}
+      {sheet !== undefined && (
+        <OperationSheet
+          // Remonter l'identifiant dans la clé force React à repartir d'un
+          // formulaire neuf quand on passe d'une opération à une autre, au
+          // lieu de garder les valeurs de la précédente.
+          key={sheet.transaction?.id ?? 'nouvelle'}
+          transaction={sheet.transaction}
+          onClose={() => setSheet(undefined)}
           onSaved={setToast}
         />
       )}

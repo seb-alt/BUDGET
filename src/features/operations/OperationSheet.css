@@ -152,3 +152,57 @@
   color: var(--text-faint);
   cursor: not-allowed;
 }
+
+/* --- Suppression, en deux temps --------------------------------------- */
+
+.op-delete {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: 0.875rem;
+  color: var(--negative);
+  cursor: pointer;
+}
+
+.op-delete:hover {
+  background: var(--negative-soft);
+  border-color: var(--negative);
+}
+
+.op-delete-confirm {
+  border: 1px solid var(--negative);
+  background: var(--negative-soft);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+}
+
+.op-delete-confirm p {
+  margin: 0 0 var(--space-3);
+  font-size: 0.875rem;
+  color: var(--negative);
+}
+
+.op-delete-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.op-delete-actions button {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.op-delete-actions button.is-danger {
+  background: var(--negative);
+  border-color: var(--negative);
+  color: #fff;
+  font-weight: 600;
+}

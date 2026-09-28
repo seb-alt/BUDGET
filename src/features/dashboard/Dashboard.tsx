@@ -20,7 +20,11 @@ import { BudgetDonutChart } from './BudgetDonutChart'
 import { BUDGET_GROUPS } from './groups'
 import './Dashboard.css'
 
-export function Dashboard() {
+interface DashboardProps {
+  onShowAllOperations: () => void
+}
+
+export function Dashboard({ onShowAllOperations }: DashboardProps) {
   const [month, setMonth] = useState(currentMonth())
 
   const accounts = useLiveQuery(() => db.accounts.toArray(), [])
@@ -285,6 +289,10 @@ export function Dashboard() {
             </div>
           ))
         )}
+
+        <button type="button" className="dash-see-all" onClick={onShowAllOperations}>
+          Voir toutes les opérations →
+        </button>
       </section>
 
       <BudgetDonutChart summary={summary} />

@@ -1,7 +1,12 @@
 /**
- * src/features/operations/NewOperationSheet.tsx
+ * src/features/operations/OperationSheet.tsx
  *
  * L'écran de saisie d'une opération — le plus critique en ergonomie (§5).
+ *
+ * Le même écran sert à CRÉER et à MODIFIER : on lui passe une opération
+ * existante, ou rien. Un second écran presque identique aurait divergé au
+ * premier changement, et les deux formulaires n'auraient plus validé la même
+ * chose.
  *
  * Principe : montant d'abord, au clavier numérique intégré. Un clavier maison
  * plutôt que celui du téléphone, pour deux raisons : il ne recouvre pas le
@@ -17,11 +22,16 @@ import { ChoiceGrid } from '../../components/ui/ChoiceGrid'
 import { SegmentedControl } from '../../components/ui/SegmentedControl'
 import { Sheet } from '../../components/ui/Sheet'
 import { db } from '../../db/db'
-import { createTransaction, validateTransaction } from '../../db/transactions'
-import type { CategoryGroup, TransactionType } from '../../db/types'
+import {
+  createTransaction,
+  deleteTransaction,
+  updateTransaction,
+  validateTransaction,
+} from '../../db/transactions'
+import type { CategoryGroup, Transaction, TransactionType } from '../../db/types'
 import { today } from '../../utils/date'
-import { appendAmountKey, parseAmountInput } from '../../utils/money'
-import './NewOperation.css'
+import { appendAmountKey, formatEurosCompact, parseAmountInput } from '../../utils/money'
+import './OperationSheet.css'
 
 /**
  * Ordre d'apparition des catégories dans la saisie : les loisirs d'abord,
@@ -45,27 +55,40 @@ const TYPE_OPTIONS: { value: TransactionType; label: string }[] = [
 
 const KEYPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', ',', '0', 'backspace']
 
-interface NewOperationSheetProps {
+/** Le montant stocké en centimes redevient du texte modifiable : 2450 -> '24,50'. */
+function amountToText(cents: number): string {
+  return (cents / 100).toFixed(2).replace('.', ',').replace(/,00$/, '')
+}
+
+interface OperationSheetProps {
+  /** Opération à modifier. Absent = création. */
+  transaction?: Transaction
   onClose: () => void
-  /** Appelé après un enregistrement réussi, pour signaler la réussite. */
+  /** Appelé après un enregistrement ou une suppression réussis. */
   onSaved: (message: string) => void
 }
 
-export function NewOperationSheet({ onClose, onSaved }: NewOperationSheetProps) {
+export function OperationSheet({ transaction, onClose, onSaved }: OperationSheetProps) {
+  const isEditing = transaction !== undefined
+
   const accounts = useLiveQuery(() => db.accounts.orderBy('order').toArray(), [])
   const categories = useLiveQuery(() => db.categories.orderBy('[group+order]').toArray(), [])
   const settings = useLiveQuery(() => db.settings.get(1), [])
 
-  const [type, setType] = useState<TransactionType>('expense')
-  const [amountText, setAmountText] = useState('')
-  const [categoryId, setCategoryId] = useState<string>()
-  const [accountId, setAccountId] = useState<string>()
-  const [fromAccountId, setFromAccountId] = useState<string>()
-  const [toAccountId, setToAccountId] = useState<string>()
-  const [date, setDate] = useState(today())
-  const [label, setLabel] = useState('')
+  const [type, setType] = useState<TransactionType>(transaction?.type ?? 'expense')
+  const [amountText, setAmountText] = useState(
+    transaction ? amountToText(transaction.amount) : '',
+  )
+  const [categoryId, setCategoryId] = useState(transaction?.categoryId)
+  const [accountId, setAccountId] = useState(transaction?.accountId)
+  const [fromAccountId, setFromAccountId] = useState(transaction?.fromAccountId)
+  const [toAccountId, setToAccountId] = useState(transaction?.toAccountId)
+  const [date, setDate] = useState(transaction?.date ?? today())
+  const [label, setLabel] = useState(transaction?.label ?? '')
   const [error, setError] = useState<string>()
   const [isSaving, setIsSaving] = useState(false)
+  /** La suppression demande une confirmation : un geste de trop, volontairement. */
+  const [isConfirmingDelete, setConfirmingDelete] = useState(false)
 
   const activeAccounts = useMemo(
     () => (accounts ?? []).filter((account) => account.active),
@@ -95,7 +118,13 @@ export function NewOperationSheet({ onClose, onSaved }: NewOperationSheetProps) 
     const kind = type === 'income' ? 'income' : 'expense'
     return categories
       .filter(
-        (category) => category.active && category.quickPick === true && category.kind === kind,
+        (category) =>
+          category.active &&
+          category.kind === kind &&
+          // En modification, on garde visible la catégorie déjà choisie même si
+          // elle n'est pas dans les accès rapides : sinon elle disparaîtrait du
+          // formulaire et une simple correction de montant l'effacerait.
+          (category.quickPick === true || category.id === transaction?.categoryId),
       )
       .sort(
         (a, b) =>
@@ -103,7 +132,7 @@ export function NewOperationSheet({ onClose, onSaved }: NewOperationSheetProps) 
           a.order - b.order,
       )
       .map((category) => ({ value: category.id, label: category.name }))
-  }, [categories, type])
+  }, [categories, type, transaction?.categoryId])
 
   const amount = parseAmountInput(amountText)
 
@@ -128,8 +157,10 @@ export function NewOperationSheet({ onClose, onSaved }: NewOperationSheetProps) 
       const target = event.target as HTMLElement | null
       if (target && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) return
 
-      if (/^\d$/.test(event.key)) setAmountText((current) => appendAmountKey(current, event.key))
-      else if (event.key === ',' || event.key === '.') setAmountText((c) => appendAmountKey(c, ','))
+      if (/^\d$/.test(event.key))
+        setAmountText((current) => appendAmountKey(current, event.key))
+      else if (event.key === ',' || event.key === '.')
+        setAmountText((c) => appendAmountKey(c, ','))
       else if (event.key === 'Backspace') setAmountText((c) => appendAmountKey(c, 'backspace'))
       else return
 
@@ -153,8 +184,13 @@ export function NewOperationSheet({ onClose, onSaved }: NewOperationSheetProps) 
     setIsSaving(true)
     setError(undefined)
     try {
-      await createTransaction({ ...draft, amount })
-      onSaved('Opération enregistrée.')
+      if (transaction) {
+        await updateTransaction(transaction.id, { ...draft, amount })
+        onSaved('Opération modifiée.')
+      } else {
+        await createTransaction({ ...draft, amount })
+        onSaved('Opération enregistrée.')
+      }
       onClose()
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "L'enregistrement a échoué.")
@@ -162,8 +198,21 @@ export function NewOperationSheet({ onClose, onSaved }: NewOperationSheetProps) 
     }
   }
 
+  async function handleDelete() {
+    if (!transaction) return
+    setIsSaving(true)
+    try {
+      await deleteTransaction(transaction.id)
+      onSaved('Opération supprimée.')
+      onClose()
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'La suppression a échoué.')
+      setIsSaving(false)
+    }
+  }
+
   return (
-    <Sheet title="Nouvelle opération" onClose={onClose}>
+    <Sheet title={isEditing ? "Modifier l'opération" : 'Nouvelle opération'} onClose={onClose}>
       <div className="op-amount">
         <output className="op-amount-value tabular" aria-live="polite">
           {amountText === '' ? <span className="op-amount-placeholder">0</span> : amountText}
@@ -215,9 +264,7 @@ export function NewOperationSheet({ onClose, onSaved }: NewOperationSheetProps) 
             </div>
 
             {destinationAccount?.countsAsSavings === true && (
-              <p className="op-hint">
-                Compté comme épargne, jamais comme une dépense.
-              </p>
+              <p className="op-hint">Compté comme épargne, jamais comme une dépense.</p>
             )}
           </>
         ) : (
@@ -266,31 +313,64 @@ export function NewOperationSheet({ onClose, onSaved }: NewOperationSheetProps) 
         </div>
 
         {error !== undefined && <p className="op-error">{error}</p>}
+
+        {isEditing && !isConfirmingDelete && (
+          <button type="button" className="op-delete" onClick={() => setConfirmingDelete(true)}>
+            Supprimer cette opération
+          </button>
+        )}
       </div>
 
+      {/* La confirmation prend la place du clavier plutôt que de s'ajouter au
+          formulaire : le clavier ne sert à rien à ce moment-là, et surtout, un
+          bloc ajouté en bas d'une zone qui défile peut se retrouver hors de
+          l'écran — avec ses boutons inaccessibles. */}
       <div className="op-footer">
-        <div className="op-keypad" role="group" aria-label="Clavier numérique">
-          {KEYPAD_KEYS.map((key) => (
-            <button
-              key={key}
-              type="button"
-              className="op-key"
-              aria-label={key === 'backspace' ? 'Effacer' : key}
-              onClick={() => setAmountText((current) => appendAmountKey(current, key))}
-            >
-              {key === 'backspace' ? '⌫' : key}
-            </button>
-          ))}
-        </div>
+        {isConfirmingDelete && transaction !== undefined ? (
+          <div className="op-delete-confirm">
+            <p>
+              Supprimer définitivement cette opération de{' '}
+              {formatEurosCompact(transaction.amount)} ?
+            </p>
+            <div className="op-delete-actions">
+              <button type="button" onClick={() => setConfirmingDelete(false)}>
+                Annuler
+              </button>
+              <button type="button" className="is-danger" onClick={() => void handleDelete()}>
+                Supprimer
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="op-keypad" role="group" aria-label="Clavier numérique">
+              {KEYPAD_KEYS.map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  className="op-key"
+                  aria-label={key === 'backspace' ? 'Effacer' : key}
+                  onClick={() => setAmountText((current) => appendAmountKey(current, key))}
+                >
+                  {key === 'backspace' ? '⌫' : key}
+                </button>
+              ))}
+            </div>
 
-        <button
-          type="button"
-          className="op-submit"
-          disabled={!canSave}
-          onClick={() => void handleSubmit()}
-        >
-          {isSaving ? 'Enregistrement…' : 'Enregistrer'}
-        </button>
+            <button
+              type="button"
+              className="op-submit"
+              disabled={!canSave}
+              onClick={() => void handleSubmit()}
+            >
+              {isSaving
+                ? 'Enregistrement…'
+                : isEditing
+                  ? 'Enregistrer les modifications'
+                  : 'Enregistrer'}
+            </button>
+          </>
+        )}
       </div>
     </Sheet>
   )

@@ -63,9 +63,13 @@ export function formatDayLabel(date: IsoDate, reference: IsoDate = today()): str
   if (date === yesterday) return 'Hier'
 
   const [y, m, d] = date.split('-').map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString('fr-FR', {
+  const label = new Date(y, m - 1, d).toLocaleDateString('fr-FR', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
   })
+
+  // Typographie française : on dit « 1er septembre », pas « 1 septembre ».
+  // Seul le premier du mois est concerné (jamais « 2nd » ni « 21er »).
+  return d === 1 ? label.replace(/\b1\b/, '1er') : label
 }
