@@ -205,8 +205,13 @@ export function Dashboard({ onShowAllOperations, onUpdateBalances }: DashboardPr
 
       {BUDGET_GROUPS.map((card) => {
         const group = summary.byGroup[card.group]
+        // Une catégorie désactivée reste affichée si elle a servi ce mois-ci :
+        // sinon ses dépenses compteraient dans le total du groupe sans
+        // apparaître nulle part, et le compte ne tomberait pas juste.
         const groupCategories = categories.filter(
-          (category) => category.group === card.group && category.active,
+          (category) =>
+            category.group === card.group &&
+            (category.active || (summary.byCategory[category.id]?.spent ?? 0) > 0),
         )
 
         // La barre est plafonnée à 100 % : au-delà, c'est la couleur et le

@@ -16,6 +16,7 @@ import { Dashboard } from '../features/dashboard/Dashboard'
 import { OperationSheet } from '../features/operations/OperationSheet'
 import { OperationsList } from '../features/operations/OperationsList'
 import { BalancesSheet } from '../features/patrimony/BalancesSheet'
+import { SettingsSheet } from '../features/settings/SettingsSheet'
 import type { Transaction } from '../db/types'
 import './App.css'
 
@@ -88,6 +89,7 @@ export default function App() {
    */
   const [sheet, setSheet] = useState<{ transaction?: Transaction } | undefined>()
   const [isBalancesOpen, setBalancesOpen] = useState(false)
+  const [isSettingsOpen, setSettingsOpen] = useState(false)
   const [toast, setToast] = useState<string>()
 
   // Le message de confirmation disparaît tout seul au bout de 2,5 secondes.
@@ -99,6 +101,27 @@ export default function App() {
 
   return (
     <div className="app">
+      {/* §3 : les Paramètres s'ouvrent par l'engrenage en haut à droite,
+          jamais depuis la barre du bas, réservée à la navigation. */}
+      <header className="app-header">
+        <button
+          type="button"
+          className="app-settings"
+          aria-label="Paramètres"
+          onClick={() => setSettingsOpen(true)}
+        >
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="3" stroke="currentColor" strokeWidth="1.6" />
+            <path
+              d="M11 2.5v2M11 17.5v2M19.5 11h-2M4.5 11h-2M17 5l-1.4 1.4M6.4 15.6 5 17M17 17l-1.4-1.4M6.4 6.4 5 5"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
+      </header>
+
       <main className="app-main">
         {tab === 'accueil' && (
           <Dashboard
@@ -143,6 +166,10 @@ export default function App() {
           <NavButton key={item.id} item={item} current={tab} onSelect={setTab} />
         ))}
       </nav>
+
+      {isSettingsOpen && (
+        <SettingsSheet onClose={() => setSettingsOpen(false)} onSaved={setToast} />
+      )}
 
       {isBalancesOpen && (
         <BalancesSheet onClose={() => setBalancesOpen(false)} onSaved={setToast} />

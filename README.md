@@ -27,6 +27,8 @@ src/
   features/
     dashboard/          # accueil : indicateurs, cartes budget, graphiques
     operations/         # saisie d'une opération, et liste complète
+    patrimony/          # saisie manuelle des soldes
+    settings/           # écran Paramètres
   domain/
     budget/             # LES CALCULS, en TypeScript pur, sans React ni Dexie
     operations/         # recherche et filtres
@@ -76,7 +78,7 @@ se met alors à jour au lieu d'être effacée.
 - [x] **Étape 3** — onglet Opérations : liste, recherche, filtres, édition, suppression
 - [x] **Gel des budgets mensuels** — un mois révolu ne bouge plus (§11)
 - [x] **Étape 4** — moteur d'épargne flexible et répartition LEP / PEA
-- [ ] **Étape 5** — écran Paramètres
+- [x] **Étape 5** — écran Paramètres
 - [ ] Onglets Patrimoine et Micro
 - [ ] Export / sauvegarde / restauration
 - [ ] PWA installable
@@ -109,6 +111,24 @@ deux formulaires n'auraient plus validé la même chose.
 `put`), en conservant son identifiant et sa date de création. C'est ce qui
 garantit qu'en transformant une dépense en transfert, l'ancienne catégorie
 disparaît vraiment de la base au lieu d'y rester.
+
+### Paramètres : ce qui est protégé
+
+Une catégorie ou un compte **utilisé par des opérations ne peut pas être
+supprimé** : les opérations deviendraient orphelines et s'afficheraient « Sans
+catégorie » pour toujours. L'écran propose de **désactiver** à la place —
+l'élément disparaît de la saisie, l'historique reste intact.
+
+Les comptes dont dépend le moteur d'épargne (LEP, PEA, assurance-vie) et le
+compte de saisie par défaut ne peuvent être ni désactivés ni supprimés.
+
+Une catégorie désactivée **ne consomme plus de budget**, mais ses dépenses du
+mois continuent de compter — l'argent a bien été dépensé. Le Dashboard la
+réaffiche tant qu'elle a servi dans le mois, pour que la somme des lignes
+corresponde toujours au total du groupe.
+
+Toute modification du budget rappelle `syncMonthlyBudgets()` : sans ça, la
+copie du mois en cours garderait l'ancien budget jusqu'au prochain lancement.
 
 ### Le moteur d'épargne (§4)
 

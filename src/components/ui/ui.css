@@ -145,3 +145,64 @@
   background: var(--surface-sunken);
   color: var(--text);
 }
+
+/* --- Champ de montant -------------------------------------------------- */
+
+.ui-amount-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.ui-field-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.ui-field-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ui-amount {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-3);
+}
+
+.ui-amount.is-invalid {
+  border-color: var(--negative);
+}
+
+.ui-amount:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.ui-amount input {
+  flex: 1;
+  min-width: 0;
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: var(--space-3) 0;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ui-amount input:focus {
+  outline: none;
+}
+
+.ui-amount span {
+  color: var(--text-muted);
+}

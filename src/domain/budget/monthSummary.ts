@@ -131,7 +131,11 @@ export function computeMonthSummary(input: MonthSummaryInput): MonthSummary {
   ) as Record<CategoryGroup, GroupProgress>
 
   for (const category of categories) {
-    const categoryBudget = budgetByCategory.get(category.id) ?? 0
+    // Une catégorie DÉSACTIVÉE ne consomme plus de budget : sinon la carte
+    // afficherait un total que les lignes visibles ne justifient pas.
+    // Ses dépenses passées, elles, continuent de compter — l'argent a bien
+    // été dépensé, et le masquer fausserait les totaux du mois.
+    const categoryBudget = category.active ? (budgetByCategory.get(category.id) ?? 0) : 0
 
     let spent: Cents
     if (category.kind === 'saving') {

@@ -14,6 +14,7 @@
 
 import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { AmountField } from '../../components/ui/AmountField'
 import { Sheet } from '../../components/ui/Sheet'
 import { db } from '../../db/db'
 import { saveBalanceSnapshot } from '../../db/patrimony'
@@ -108,23 +109,16 @@ export function BalancesSheet({ onClose, onSaved }: BalancesSheetProps) {
 
         {editableAccounts.map((account) => {
           const raw = valueFor(account.id)
-          const isValid = parseBalanceInput(raw) !== null
-
           return (
-            <label key={account.id} className="bal-field">
-              <span className="bal-label">{account.name}</span>
-              <div className={`bal-input${isValid ? '' : ' is-invalid'}`}>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={raw}
-                  onChange={(event) =>
-                    setDrafts((current) => ({ ...current, [account.id]: event.target.value }))
-                  }
-                />
-                <span aria-hidden="true">€</span>
-              </div>
-            </label>
+            <AmountField
+              key={account.id}
+              label={account.name}
+              value={raw}
+              invalid={parseBalanceInput(raw) === null}
+              onChange={(next) =>
+                setDrafts((current) => ({ ...current, [account.id]: next }))
+              }
+            />
           )
         })}
 

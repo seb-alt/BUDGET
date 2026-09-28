@@ -208,3 +208,39 @@ describe('mois vide', () => {
     expect(summary.leisureRemaining).toBe(30000)
   })
 })
+
+describe('catégories désactivées', () => {
+  const withInactive: Category[] = [
+    ...categories,
+    { id: 'ancien', name: 'Ancienne sortie', kind: 'expense', group: 'loisirs', order: 9, active: false },
+  ]
+  const budgetWithInactive: BudgetLine[] = [...budget, { categoryId: 'ancien', amount: 10000 }]
+
+  const summarise2 = (transactions: Transaction[]) =>
+    computeMonthSummary({
+      month: '2026-09',
+      transactions,
+      accounts,
+      categories: withInactive,
+      budget: budgetWithInactive,
+      savingCategoryAccounts,
+    })
+
+  it('leur budget ne compte plus dans le groupe', () => {
+    // Loisirs actifs : 200 (shopping) + 100 (sorties) = 300, l'ancienne exclue.
+    expect(summarise2([]).byGroup.loisirs.budget).toBe(30000)
+    expect(summarise2([]).byCategory.ancien.budget).toBe(0)
+  })
+
+  it('mais leurs dépenses du mois comptent toujours', () => {
+    // L'argent a bien été dépensé : le masquer fausserait le total du mois.
+    const summary = summarise2([
+      tx({ type: 'expense', amount: 4200, categoryId: 'ancien', accountId: 'cic' }),
+    ])
+
+    expect(summary.expenses).toBe(4200)
+    expect(summary.byCategory.ancien.spent).toBe(4200)
+    expect(summary.byGroup.loisirs.spent).toBe(4200)
+    expect(summary.byGroup.loisirs.remaining).toBe(25800)
+  })
+})
