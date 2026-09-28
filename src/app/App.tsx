@@ -15,6 +15,7 @@ import { useEffect, useState, type ReactElement } from 'react'
 import { Dashboard } from '../features/dashboard/Dashboard'
 import { OperationSheet } from '../features/operations/OperationSheet'
 import { OperationsList } from '../features/operations/OperationsList'
+import { BalancesSheet } from '../features/patrimony/BalancesSheet'
 import type { Transaction } from '../db/types'
 import './App.css'
 
@@ -86,6 +87,7 @@ export default function App() {
    * trois, pour qu'il soit impossible d'être « en création ET en modification ».
    */
   const [sheet, setSheet] = useState<{ transaction?: Transaction } | undefined>()
+  const [isBalancesOpen, setBalancesOpen] = useState(false)
   const [toast, setToast] = useState<string>()
 
   // Le message de confirmation disparaît tout seul au bout de 2,5 secondes.
@@ -98,7 +100,12 @@ export default function App() {
   return (
     <div className="app">
       <main className="app-main">
-        {tab === 'accueil' && <Dashboard onShowAllOperations={() => setTab('operations')} />}
+        {tab === 'accueil' && (
+          <Dashboard
+            onShowAllOperations={() => setTab('operations')}
+            onUpdateBalances={() => setBalancesOpen(true)}
+          />
+        )}
         {tab === 'operations' && (
           <OperationsList onEdit={(transaction) => setSheet({ transaction })} />
         )}
@@ -136,6 +143,10 @@ export default function App() {
           <NavButton key={item.id} item={item} current={tab} onSelect={setTab} />
         ))}
       </nav>
+
+      {isBalancesOpen && (
+        <BalancesSheet onClose={() => setBalancesOpen(false)} onSaved={setToast} />
+      )}
 
       {sheet !== undefined && (
         <OperationSheet

@@ -18,6 +18,7 @@ const settings = (): Settings => ({
   ],
   lepThreshold: 800000,
   assuranceVieMonthly: 50000,
+  flexibleSavingsCategoryId: 'flex',
   lepAccountId: 'lep',
   peaAccountId: 'pea',
   assuranceVieAccountId: 'av',

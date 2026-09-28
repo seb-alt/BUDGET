@@ -29,6 +29,8 @@ src/
     operations/         # saisie d'une opération, et liste complète
   domain/
     budget/             # LES CALCULS, en TypeScript pur, sans React ni Dexie
+    operations/         # recherche et filtres
+    patrimony/          # soldes des comptes
   components/ui/        # briques réutilisables (panneau, boutons de choix…)
   db/
     types.ts            # la forme de chaque donnée (dictionnaire)
@@ -73,8 +75,9 @@ se met alors à jour au lieu d'être effacée.
 - [x] **Étape 2** — saisie d'une opération, Dashboard, navigation, graphiques
 - [x] **Étape 3** — onglet Opérations : liste, recherche, filtres, édition, suppression
 - [x] **Gel des budgets mensuels** — un mois révolu ne bouge plus (§11)
-- [ ] Moteur d'épargne flexible et répartition LEP / PEA
-- [ ] Écran Paramètres, graphiques, Patrimoine, Micro
+- [x] **Étape 4** — moteur d'épargne flexible et répartition LEP / PEA
+- [ ] **Étape 5** — écran Paramètres
+- [ ] Onglets Patrimoine et Micro
 - [ ] Export / sauvegarde / restauration
 - [ ] PWA installable
 
@@ -106,6 +109,34 @@ deux formulaires n'auraient plus validé la même chose.
 `put`), en conservant son identifiant et sa date de création. C'est ce qui
 garantit qu'en transformant une dépense en transfert, l'ancienne catégorie
 disparaît vraiment de la base au lieu d'y rester.
+
+### Le moteur d'épargne (§4)
+
+Deux règles, deux fichiers, tous deux en TypeScript pur et couverts par les
+exemples chiffrés du cahier des charges :
+
+- `domain/budget/budgetEngine.ts` — l'enveloppe flexible. Charges fixes,
+  loisirs et assurance-vie ne bougent pas ; c'est l'enveloppe LEP/PEA qui
+  absorbe la variation des revenus. Si les revenus ne suffisent pas, elle tombe
+  à zéro et l'app **affiche un déficit sans jamais rogner** une autre enveloppe.
+- `domain/budget/lepPeaEngine.ts` — la répartition. Le LEP passe en premier
+  tant qu'il n'a pas atteint son seuil, le surplus va au PEA.
+
+`applyFlexibleEnvelope()` réécrit la ligne du budget correspondante, pour que la
+carte Épargne et la carte de proposition affichent toujours le même montant.
+La catégorie concernée est désignée par `settings.flexibleSavingsCategoryId` —
+jamais devinée.
+
+### Les soldes, sans connexion bancaire (§8)
+
+`domain/patrimony/accountBalance.ts` reconstitue un solde en deux morceaux : le
+dernier relevé manuel saisi, plus les mouvements enregistrés depuis. Sans
+relevé, on part de zéro — le chiffre n'est alors qu'un cumul d'opérations, pas
+un vrai solde. Les opérations datées du **jour** du relevé ne sont pas
+recomptées : le solde saisi fait foi pour cette date.
+
+« Actualiser mes soldes » n'est accessible que depuis la carte d'épargne du
+Dashboard pour l'instant ; l'onglet Patrimoine le reprendra.
 
 ### Gel des budgets mensuels (§11)
 

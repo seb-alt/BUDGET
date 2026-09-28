@@ -101,6 +101,20 @@ export class BudgetDatabase extends Dexie {
         }
       }
     })
+
+    // --- VERSION 3 : désignation de l'enveloppe flexible dans les réglages.
+    // Jusqu'ici, son montant était une ligne fixe du budget ; il est désormais
+    // recalculé chaque mois par le moteur d'épargne (§4). Il faut donc savoir
+    // QUELLE catégorie joue ce rôle.
+    //
+    // Là encore aucun index ne change : la version 3 hérite du schéma.
+    this.version(3).upgrade(async (transaction) => {
+      const settings = transaction.table<Settings>('settings')
+      const existing = await settings.get(1)
+      if (existing !== undefined && existing.flexibleSavingsCategoryId === undefined) {
+        await settings.update(1, { flexibleSavingsCategoryId: 'cat-epargne-flexible' })
+      }
+    })
   }
 }
 

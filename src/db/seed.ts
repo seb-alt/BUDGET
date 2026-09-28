@@ -169,6 +169,7 @@ const seedSettings = (): Settings => ({
   ],
   lepThreshold: euros(8000),
   assuranceVieMonthly: euros(500),
+  flexibleSavingsCategoryId: CATEGORY_IDS.epargneFlexible,
   lepAccountId: ACCOUNT_IDS.lep,
   peaAccountId: ACCOUNT_IDS.pea,
   assuranceVieAccountId: ACCOUNT_IDS.assuranceVie,

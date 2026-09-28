@@ -13,18 +13,22 @@ import { useMemo, useState, type CSSProperties } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { resolveMonthBudget } from '../../db/budgets'
 import { db } from '../../db/db'
+import { applyFlexibleEnvelope } from '../../domain/budget/budgetEngine'
 import { computeMonthSummary } from '../../domain/budget/monthSummary'
+import { computeAccountBalances } from '../../domain/patrimony/accountBalance'
 import { addMonths, currentMonth, formatDayLabel, formatMonthLabel } from '../../utils/date'
 import { formatEurosCompact } from '../../utils/money'
 import { BudgetDonutChart } from './BudgetDonutChart'
+import { SavingsPlanCard } from './SavingsPlanCard'
 import { BUDGET_GROUPS } from './groups'
 import './Dashboard.css'
 
 interface DashboardProps {
   onShowAllOperations: () => void
+  onUpdateBalances: () => void
 }
 
-export function Dashboard({ onShowAllOperations }: DashboardProps) {
+export function Dashboard({ onShowAllOperations, onUpdateBalances }: DashboardProps) {
   const [month, setMonth] = useState(currentMonth())
 
   const accounts = useLiveQuery(() => db.accounts.toArray(), [])
@@ -36,9 +40,43 @@ export function Dashboard({ onShowAllOperations }: DashboardProps) {
     () => db.transactions.where('date').between(`${month}-01`, `${month}-31`, true, true).toArray(),
     [month],
   )
+  const settings = useLiveQuery(() => db.settings.get(1), [])
+  // Le solde du LEP se calcule sur TOUT l'historique, pas sur le mois affiché.
+  const allTransactions = useLiveQuery(() => db.transactions.toArray(), [])
+  const snapshots = useLiveQuery(() => db.patrimonySnapshots.toArray(), [])
+
+  /**
+   * Les revenus personnels réellement encaissés ce mois-ci : c'est l'entrée de
+   * la règle de l'enveloppe flexible. La micro-entreprise en est exclue, elle
+   * a son propre onglet.
+   */
+  const actualIncome = useMemo(
+    () =>
+      (transactions ?? [])
+        .filter((transaction) => transaction.type === 'income' && !transaction.isMicro)
+        .reduce((total, transaction) => total + transaction.amount, 0),
+    [transactions],
+  )
+
+  /**
+   * Le budget du mois passe par le moteur AVANT d'être résumé : la ligne de
+   * l'enveloppe flexible y est remplacée par le montant que la règle calcule.
+   * Sans ça, la carte Épargne afficherait la ligne fixe du budget pendant que
+   * la carte de proposition annoncerait autre chose.
+   */
+  const planned = useMemo(() => {
+    if (!categories || !budget || !settings) return undefined
+    return applyFlexibleEnvelope({
+      budget: budget.lines,
+      categories,
+      actualIncome,
+      flexibleCategoryId: settings.flexibleSavingsCategoryId,
+      assuranceVieMonthly: budget.assuranceVieMonthly,
+    })
+  }, [categories, budget, settings, actualIncome])
 
   const summary = useMemo(() => {
-    if (!accounts || !categories || !budget || !transactions) return undefined
+    if (!accounts || !categories || !planned || !transactions) return undefined
 
     const savingCategoryAccounts = Object.fromEntries(
       categories
@@ -51,10 +89,25 @@ export function Dashboard({ onShowAllOperations }: DashboardProps) {
       transactions,
       accounts,
       categories,
-      budget: budget.lines,
+      budget: planned.budget,
       savingCategoryAccounts,
     })
-  }, [accounts, categories, budget, transactions, month])
+  }, [accounts, categories, planned, transactions, month])
+
+  const lepBalance = useMemo(() => {
+    if (!settings || !allTransactions || !snapshots) return 0
+    return (
+      computeAccountBalances([settings.lepAccountId], allTransactions, snapshots).get(
+        settings.lepAccountId,
+      )?.balance ?? 0
+    )
+  }, [settings, allTransactions, snapshots])
+
+  const lastSnapshotDate = useMemo(
+    () =>
+      [...(snapshots ?? [])].sort((a, b) => b.date.localeCompare(a.date))[0]?.date,
+    [snapshots],
+  )
 
   const namesById = useMemo(() => {
     const map = new Map<string, string>()
@@ -77,7 +130,7 @@ export function Dashboard({ onShowAllOperations }: DashboardProps) {
     return [...groups.entries()]
   }, [transactions])
 
-  if (!summary || !categories || !budget) {
+  if (!summary || !categories || !budget || !planned || !settings || !accounts) {
     return <p className="dash-loading">Chargement…</p>
   }
 
@@ -134,6 +187,21 @@ export function Dashboard({ onShowAllOperations }: DashboardProps) {
           tone={summary.leisureRemaining < 0 ? 'negative' : 'neutral'}
         />
       </section>
+
+      {/* Le mois en cours seulement : proposer une répartition pour un mois
+          révolu n'aurait aucun sens, l'argent est déjà placé. */}
+      {isCurrentMonth && (
+        <SavingsPlanCard
+          savings={planned.savings}
+          actualIncome={actualIncome}
+          lepBalance={lepBalance}
+          lepThreshold={budget.lepThreshold}
+          lepAccountName={accounts.find((a) => a.id === settings.lepAccountId)?.name ?? 'LEP'}
+          peaAccountName={accounts.find((a) => a.id === settings.peaAccountId)?.name ?? 'PEA'}
+          lastSnapshotDate={lastSnapshotDate}
+          onUpdateBalances={onUpdateBalances}
+        />
+      )}
 
       {BUDGET_GROUPS.map((card) => {
         const group = summary.byGroup[card.group]

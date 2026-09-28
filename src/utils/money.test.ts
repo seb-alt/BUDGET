@@ -11,6 +11,7 @@ import {
   appendAmountKey,
   formatEurosCompact,
   parseAmountInput,
+  parseBalanceInput,
   sumCents,
   toCents,
 } from './money'
@@ -113,5 +114,29 @@ describe('appendAmountKey', () => {
 
   it('ignore une touche inconnue', () => {
     expect(appendAmountKey('24', 'a')).toBe('24')
+  })
+})
+
+describe('parseBalanceInput', () => {
+  it('accepte zéro — un compte peut être vide', () => {
+    expect(parseBalanceInput('0')).toBe(0)
+    expect(parseBalanceInput('0,00')).toBe(0)
+  })
+
+  it('accepte un découvert', () => {
+    expect(parseBalanceInput('-120,50')).toBe(-12050)
+    // Le vrai signe moins typographique, que certains claviers produisent.
+    expect(parseBalanceInput('−120,50')).toBe(-12050)
+  })
+
+  it('accepte un solde ordinaire', () => {
+    expect(parseBalanceInput('7 850')).toBe(785000)
+  })
+
+  it('refuse une saisie vide ou incohérente', () => {
+    expect(parseBalanceInput('')).toBeNull()
+    expect(parseBalanceInput('   ')).toBeNull()
+    expect(parseBalanceInput('abc')).toBeNull()
+    expect(parseBalanceInput('-')).toBeNull()
   })
 })

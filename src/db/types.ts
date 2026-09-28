@@ -327,6 +327,13 @@ export interface Settings {
   /** Versement mensuel incompressible vers l'assurance-vie. */
   assuranceVieMonthly: Cents
 
+  /**
+   * La catégorie dont le budget n'est PAS fixe : son montant est recalculé
+   * chaque mois par la règle de l'enveloppe flexible (§4), à partir des
+   * revenus réellement encaissés. Toutes les autres lignes restent stables.
+   */
+  flexibleSavingsCategoryId: string
+
   /* Comptes utilisés par le moteur de répartition LEP / PEA. */
   lepAccountId: string
   peaAccountId: string

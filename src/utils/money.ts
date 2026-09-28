@@ -67,6 +67,35 @@ export function sumCents(values: Cents[]): Cents {
  *   '0'     -> null      '24,' -> 2400      '1 234,5' -> 123450
  */
 export function parseAmountInput(raw: string): Cents | null {
+  const cents = parseDigits(raw)
+  // Un montant d'opération est forcément strictement positif : le sens
+  // (entrée, sortie) est porté par le TYPE de l'opération, pas par le signe.
+  return cents !== null && cents > 0 ? cents : null
+}
+
+/**
+ * Comme parseAmountInput, mais pour un SOLDE de compte.
+ *
+ * Deux différences, et elles comptent : un solde peut valoir zéro, et un
+ * compte courant peut être à découvert. Refuser le signe moins ici
+ * t'empêcherait de saisir la réalité.
+ */
+export function parseBalanceInput(raw: string): Cents | null {
+  const trimmed = raw.trim()
+  if (trimmed === '') return null
+
+  const isNegative = trimmed.startsWith('-') || trimmed.startsWith('−')
+  const magnitude = parseDigits(isNegative ? trimmed.slice(1) : trimmed)
+  if (magnitude === null) return null
+
+  return isNegative ? -magnitude : magnitude
+}
+
+/**
+ * Le cœur commun : transforme une saisie en centimes, sans jamais construire
+ * de nombre à virgule. Renvoie `null` si la saisie n'est pas un nombre.
+ */
+function parseDigits(raw: string): Cents | null {
   const normalised = raw.replace(/\s/g, '').replace(',', '.')
   const match = /^(\d*)(?:\.(\d*))?$/.exec(normalised)
   if (match === null) return null
@@ -74,15 +103,15 @@ export function parseAmountInput(raw: string): Cents | null {
   const [, wholePart = '', fractionPart = ''] = match
   if (wholePart === '' && fractionPart === '') return null
 
-  // On assemble les centimes à partir des CHIFFRES, sans jamais construire de
-  // nombre à virgule : c'est ce qui rend la conversion exacte.
+  // On assemble les centimes à partir des CHIFFRES : c'est ce qui rend la
+  // conversion exacte, là où 1,005 * 100 vaudrait 100,49999999999999.
   const twoDecimals = fractionPart.slice(0, 2).padEnd(2, '0')
   let cents = Number(wholePart || '0') * 100 + Number(twoDecimals)
 
   // Si tu tapes plus de deux décimales, on arrondit au centime le plus proche.
   if (fractionPart.length > 2 && Number(fractionPart[2]) >= 5) cents += 1
 
-  return cents > 0 ? cents : null
+  return cents
 }
 
 /**

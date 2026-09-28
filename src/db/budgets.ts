@@ -18,10 +18,17 @@ import {
 } from '../domain/budget/monthlyBudget'
 import { currentMonth } from '../utils/date'
 import { db } from './db'
-import type { BudgetLine, IsoMonth } from './types'
+import type { BudgetLine, Cents, IsoMonth } from './types'
 
 export interface ResolvedBudget {
   lines: BudgetLine[]
+  /**
+   * Réglages applicables à ce mois. Sur un mois figé, ce sont ceux de
+   * l'époque : les relire dans les paramètres actuels ferait bouger
+   * rétroactivement la répartition de l'épargne d'un mois passé.
+   */
+  assuranceVieMonthly: Cents
+  lepThreshold: Cents
   /** Vrai si ce mois est révolu et que ses chiffres ne bougeront plus. */
   frozen: boolean
 }
@@ -33,11 +40,21 @@ export interface ResolvedBudget {
 export async function resolveMonthBudget(month: IsoMonth): Promise<ResolvedBudget> {
   const snapshot = await db.monthlyBudgets.get(month)
   if (snapshot !== undefined) {
-    return { lines: snapshot.lines, frozen: isMonthFrozen(month, currentMonth(), true) }
+    return {
+      lines: snapshot.lines,
+      assuranceVieMonthly: snapshot.assuranceVieMonthly,
+      lepThreshold: snapshot.lepThreshold,
+      frozen: isMonthFrozen(month, currentMonth(), true),
+    }
   }
 
   const settings = await db.settings.get(1)
-  return { lines: settings?.budgetTemplate ?? [], frozen: false }
+  return {
+    lines: settings?.budgetTemplate ?? [],
+    assuranceVieMonthly: settings?.assuranceVieMonthly ?? 0,
+    lepThreshold: settings?.lepThreshold ?? 0,
+    frozen: false,
+  }
 }
 
 export interface SyncReport {
