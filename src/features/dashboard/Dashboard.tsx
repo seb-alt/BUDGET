@@ -11,7 +11,7 @@
 
 import { useMemo, useState, type CSSProperties } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { resolveBudgetForMonth } from '../../db/budgets'
+import { resolveMonthBudget } from '../../db/budgets'
 import { db } from '../../db/db'
 import { computeMonthSummary } from '../../domain/budget/monthSummary'
 import { addMonths, currentMonth, formatDayLabel, formatMonthLabel } from '../../utils/date'
@@ -25,7 +25,7 @@ export function Dashboard() {
 
   const accounts = useLiveQuery(() => db.accounts.toArray(), [])
   const categories = useLiveQuery(() => db.categories.orderBy('[group+order]').toArray(), [])
-  const budget = useLiveQuery(() => resolveBudgetForMonth(month), [month])
+  const budget = useLiveQuery(() => resolveMonthBudget(month), [month])
   const transactions = useLiveQuery(
     // Les dates sont des chaînes 'AAAA-MM-JJ' : tout le mois tient entre
     // '2026-09-01' et '2026-09-31', même pour les mois de 30 jours.
@@ -47,7 +47,7 @@ export function Dashboard() {
       transactions,
       accounts,
       categories,
-      budget,
+      budget: budget.lines,
       savingCategoryAccounts,
     })
   }, [accounts, categories, budget, transactions, month])
@@ -73,7 +73,7 @@ export function Dashboard() {
     return [...groups.entries()]
   }, [transactions])
 
-  if (!summary || !categories) {
+  if (!summary || !categories || !budget) {
     return <p className="dash-loading">Chargement…</p>
   }
 
@@ -101,6 +101,14 @@ export function Dashboard() {
             ›
           </button>
         </div>
+        {/* Un mois révolu porte la mention « figé » : ses chiffres ne bougeront
+            plus, même si tu changes ton budget l'an prochain (§11). */}
+        {budget.frozen && (
+          <p className="dash-frozen" title="Le budget de ce mois ne changera plus.">
+            Budget figé
+          </p>
+        )}
+
         {!isCurrentMonth && (
           <button
             type="button"

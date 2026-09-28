@@ -54,6 +54,16 @@
   color: var(--text);
 }
 
+/* Petite pastille discrète : informative, jamais alarmante. */
+.dash-frozen {
+  margin: 0;
+  padding: 0.125rem var(--space-3);
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
 .dash-today {
   appearance: none;
   border: none;

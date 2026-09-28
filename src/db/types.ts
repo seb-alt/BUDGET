@@ -179,6 +179,12 @@ export interface MonthlyBudget {
   lepThreshold: Cents
   assuranceVieMonthly: Cents
   createdAt: IsoTimestamp
+  /**
+   * Dernière mise à jour de la photo. Tant que le mois est EN COURS, elle suit
+   * les réglages et cette date bouge. Une fois le mois révolu, elle ne bouge
+   * plus : c'est la date à laquelle le budget a été figé.
+   */
+  updatedAt: IsoTimestamp
 }
 
 /* ------------------------------------------------------------------ */

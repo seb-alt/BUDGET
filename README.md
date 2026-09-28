@@ -72,6 +72,7 @@ se met alors à jour au lieu d'être effacée.
 - [x] **Étape 1** — socle : projet Vite, Dexie, modèle de données, remplissage initial
 - [x] **Étape 2** — saisie d'une opération, Dashboard, navigation, graphiques
 - [ ] **Étape 3** — onglet Opérations : liste complète, recherche, filtres, édition
+- [x] **Gel des budgets mensuels** — un mois révolu ne bouge plus (§11)
 - [ ] Moteur d'épargne flexible et répartition LEP / PEA
 - [ ] Écran Paramètres, graphiques, Patrimoine, Micro
 - [ ] Export / sauvegarde / restauration
@@ -95,8 +96,22 @@ de daltonisme et lisibles sur fond clair comme sur fond sombre. **Ne pas les
 changer sans revalider.** Le rouge `--chart-over` est réservé au dépassement et
 ne sert jamais de couleur de série.
 
-### Décisions en attente
+### Gel des budgets mensuels (§11)
 
-- **Quand un budget mensuel se fige-t-il ?** (§11) La lecture est en place dans
-  `db/budgets.ts`, mais rien n'écrit encore dans `monthlyBudgets` : il faut
-  choisir le déclencheur (première opération du mois / clôture / manuel).
+Les statistiques d'un mois passé ne changent jamais rétroactivement.
+
+Le mois **en cours** suit tes réglages en permanence : ajuste ton budget le 15,
+le mois en cours en tient compte tout de suite. Une copie est tenue à jour dans
+la table `monthlyBudgets`. Dès que le mois est **révolu**, cette copie cesse
+d'être mise à jour : elle devient la photo définitive, et le Dashboard affiche
+« Budget figé ». Rien à clôturer, c'est le passage du temps qui fige.
+
+La règle est dans `domain/budget/monthlyBudget.ts` (pure, testée) ; son
+application aux tables est dans `db/budgets.ts`. `syncMonthlyBudgets()` est
+appelée au démarrage dans `main.tsx` — **elle devra aussi l'être après toute
+modification du budget dans le futur écran Paramètres.**
+
+Limite assumée : si l'application n'est pas ouverte de tout un mois, aucune
+photo n'a pu être prise pendant ce mois-là ; elle est alors créée au lancement
+suivant à partir du budget courant. C'est la meilleure information disponible,
+et mieux que de laisser ce mois dériver à chaque futur changement.

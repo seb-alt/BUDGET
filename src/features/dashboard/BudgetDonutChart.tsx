@@ -146,8 +146,10 @@ function ChartHeader({
     <>
       <h2>Répartition du budget</h2>
       <p className="chart-subtitle">
+        {/* « budget du mois » et non « budget de référence » : sur un mois
+            révolu, c'est le budget figé de l'époque qui est affiché. */}
         {mode === 'planned'
-          ? 'Comment ton budget de référence est réparti.'
+          ? 'Comment le budget du mois est réparti.'
           : "Où l'argent est réellement allé ce mois-ci."}
       </p>
       <div className="chart-toggle">
