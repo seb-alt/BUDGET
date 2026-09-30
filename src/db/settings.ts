@@ -29,7 +29,6 @@ import type {
   CategoryGroup,
   CategoryKind,
   Cents,
-  StudentLoan,
 } from './types'
 
 const now = () => new Date().toISOString()
@@ -66,7 +65,6 @@ export async function updateBudget(update: BudgetUpdate): Promise<void> {
 export interface SavingsUpdate {
   lepThreshold: Cents
   assuranceVieMonthly: Cents
-  studentLoan: StudentLoan
 }
 
 export async function updateSavingsSettings(update: SavingsUpdate): Promise<void> {

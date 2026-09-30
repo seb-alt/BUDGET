@@ -42,12 +42,15 @@ import {
   renameInSnapshot,
   renameInTransaction,
 } from '../domain/migration/renameIds'
+import { loanFromLegacy, settingsWithoutLoan } from '../domain/migration/extractLoans'
+import type { LegacyStudentLoan } from '../domain/migration/extractLoans'
 import type {
   Account,
   Category,
   MicroClient,
   MicroForecast,
   MicroInvoice,
+  Loan,
   MicroSettings,
   MonthlyBudget,
   PatrimonySnapshot,
@@ -68,6 +71,7 @@ export class BudgetDatabase extends Dexie {
   microForecasts!: Table<MicroForecast, string>
   settings!: Table<Settings, number>
   microSettings!: Table<MicroSettings, number>
+  loans!: Table<Loan, string>
 
   constructor() {
     // 'budgetDB' est le nom visible dans les outils développeur du navigateur.
@@ -213,6 +217,34 @@ export class BudgetDatabase extends Dexie {
         await accounts.delete(account.id)
       }
     })
+
+    // --- VERSION 6 : les prêts deviennent une table.
+    //
+    // Les réglages contenaient un champ `studentLoan` : UN prêt, sans nom,
+    // qu'on ne pouvait ni ajouter ni supprimer. Une dette n'est pas un
+    // réglage — on en contracte, on en solde, on en a parfois plusieurs.
+    //
+    // C'est la première version qui ajoute une TABLE, d'où le `.stores()` :
+    // les versions précédentes héritaient toutes du schéma de la version 1.
+    // Les tables non citées sont conservées telles quelles.
+    this.version(6)
+      .stores({ loans: 'id, order' })
+      .upgrade(async (transaction) => {
+        const settings = transaction.table<Settings & { studentLoan?: LegacyStudentLoan }>(
+          'settings',
+        )
+        const loans = transaction.table<Loan>('loans')
+        const now = new Date().toISOString()
+
+        for (const row of await settings.toArray()) {
+          const loan = loanFromLegacy(row.studentLoan, now)
+          // Un prêt entièrement à zéro n'est pas un prêt : c'est un champ
+          // qu'on n'a jamais rempli. Le convertir créerait une ligne vide que
+          // tu devrais supprimer, sans comprendre d'où elle sort.
+          if (loan !== undefined) await loans.put(loan)
+          await settings.put(settingsWithoutLoan(row))
+        }
+      })
   }
 }
 

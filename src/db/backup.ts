@@ -27,12 +27,13 @@ import {
   type BackupTable,
 } from '../domain/backup/backupFile'
 import { csvAmount, toCsv, type CsvColumn } from '../domain/backup/csv'
+import { extractLoansInBackupData } from '../domain/migration/extractLoans'
 import { V5_RENAMES, renameInBackupData } from '../domain/migration/renameIds'
 import { db } from './db'
 import type { MicroInvoice, PatrimonySnapshot, Settings, Transaction } from './types'
 
 /** Version du schéma de la base. Doit suivre le dernier `.version(n)` de db.ts. */
-export const SCHEMA_VERSION = 5
+export const SCHEMA_VERSION = 6
 
 /* ------------------------------------------------------------------ */
 /* Export complet                                                      */
@@ -87,8 +88,12 @@ export interface RestoreReport {
  * même fichier : impossible que les deux chemins divergent.
  */
 function upgradeBackupData(backup: BackupFile): Record<string, unknown[]> {
-  if (backup.version >= 5) return backup.data
-  return renameInBackupData(backup.data, V5_RENAMES)
+  // Les conversions s'enchaînent, de la plus ancienne à la plus récente —
+  // exactement comme Dexie enchaîne ses migrations sur une base réelle.
+  let data: Record<string, unknown[]> = backup.data
+  if (backup.version < 5) data = renameInBackupData(data, V5_RENAMES)
+  if (backup.version < 6) data = extractLoansInBackupData(data, new Date().toISOString())
+  return data
 }
 
 export async function restoreBackup(backup: BackupFile): Promise<RestoreReport> {

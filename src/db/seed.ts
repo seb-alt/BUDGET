@@ -328,13 +328,6 @@ const seedSettings = (): Settings => ({
   peaAccountId: ACCOUNT_IDS.pea,
   assuranceVieAccountId: ACCOUNT_IDS.assuranceVie,
   defaultAccountId: ACCOUNT_IDS.courant,
-  studentLoan: {
-    initialAmount: euros(0),
-    monthlyPayment: euros(0),
-    /* À recaler depuis l'onglet Patrimoine avec ton vrai capital restant dû. */
-    remainingCapital: euros(0),
-    lastUpdated: new Date().toISOString().slice(0, 10),
-  },
   createdAt: now(),
   updatedAt: now(),
 })

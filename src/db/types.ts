@@ -308,11 +308,32 @@ export interface MicroForecast {
 /* Réglages                                                            */
 /* ------------------------------------------------------------------ */
 
-export interface StudentLoan {
+/**
+ * Un emprunt en cours.
+ *
+ * C'était au départ un champ unique dans les réglages — « le » prêt étudiant.
+ * Une dette n'est pas un réglage : on en contracte, on en solde, on en a
+ * plusieurs. C'est donc devenu une table, comme les comptes et les catégories.
+ *
+ * Le prêt n'est PAS relié à la catégorie budgétaire qui en paie la mensualité.
+ * Les deux répondent à des questions différentes : le budget demande « combien
+ * je dépense ce mois-ci », le prêt demande « combien je dois encore ».
+ */
+export interface Loan {
+  id: string
+  name: string
+  /** Montant emprunté à l'origine. Sert de repère pour la barre de progression. */
   initialAmount: Cents
+  /** Mensualité, à titre indicatif : elle n'alimente aucun calcul de budget. */
   monthlyPayment: Cents
+  /** Ce qu'il reste à rembourser. C'est le seul chiffre qui entre dans le patrimoine net. */
   remainingCapital: Cents
+  /** Date de la dernière mise à jour du capital restant dû, saisie à la main. */
   lastUpdated: IsoDate
+  /** Ordre d'affichage. */
+  order: number
+  createdAt: IsoTimestamp
+  updatedAt: IsoTimestamp
 }
 
 /**
@@ -345,7 +366,6 @@ export interface Settings {
   /** Compte proposé par défaut à la saisie d'une opération. */
   defaultAccountId: string
 
-  studentLoan: StudentLoan
 
   /** Date de la dernière sauvegarde complète, pour le rappel discret (§12). */
   lastBackupAt?: IsoTimestamp

@@ -58,6 +58,7 @@ src/
     transactions.ts     # écriture et validation des opérations
     budgets.ts          # quel budget s'applique à quel mois
     recurring.ts        # règles récurrentes : application et confirmation
+    loans.ts            # prêts : création, modification, suppression
     monthlyReport.ts    # tout ce qu'il faut savoir sur un mois, en une fois
   assets/               # la police Inter, embarquée dans l'application
   utils/                # dates, montants
@@ -113,6 +114,7 @@ elles ont été construites, pas dans celui du document.
 - [x] **Étape 14** — bascule clair / sombre
 - [x] **Étape 15** — publication sur GitHub Pages et guide d'utilisation
 - [x] **Étape 16** — remplissage initial neutre, pour un dépôt publiable
+- [x] **Étape 17** — les prêts deviennent une liste (version 6)
 
 ### Graphiques
 
@@ -641,3 +643,45 @@ Deux garde-fous :
 - on n'ajoute pas de catégorie au groupe **Épargne** : ces enveloppes sont
   alimentées par des virements et doivent pointer vers des comptes précis
   (`savingAccountIds`), ce qu'un simple nom ne suffit pas à décrire.
+
+### Les prêts deviennent une liste (version 6)
+
+Les réglages contenaient un champ `studentLoan` : **un** prêt, sans nom, qu'on
+ne pouvait ni ajouter ni supprimer. Une dette n'est pas un réglage — on en
+contracte, on en solde, on en a parfois plusieurs. C'est donc une table, avec
+sa section **Paramètres → Prêts**.
+
+Trois décisions valent d'être expliquées.
+
+**Un prêt n'est relié à aucune opération.** La mensualité payée chaque mois
+appartient à sa catégorie budgétaire ; le prêt, lui, répond à « combien je dois
+encore ». Deux questions différentes, deux objets différents — et c'est
+précisément ce qui rend la suppression d'un prêt sans danger pour
+l'historique, là où une catégorie utilisée est protégée.
+
+**Le capital restant dû se saisit à la main.** L'application pourrait le
+décrémenter de la mensualité chaque mois, mais elle mentirait : une mensualité
+paie d'abord des intérêts, et la part de capital remboursée varie à chaque
+échéance. Mieux vaut un chiffre recopié du relevé deux fois par an qu'un
+chiffre faux tous les mois.
+
+**Un prêt hérité entièrement à zéro n'est pas converti.** Depuis que le
+remplissage initial est neutre, tout le monde part avec un `studentLoan` à
+zéro ; le convertir créerait chez chacun une ligne vide surgie de nulle part,
+à supprimer à la main sans comprendre pourquoi.
+
+Comme pour le renommage des identifiants, la conversion vit dans
+`domain/migration/extractLoans.ts`, pure et testée, parce qu'elle sert **aux
+deux endroits** : la migration de la base, et la restauration d'une sauvegarde
+antérieure — qui n'écrit que des lignes et ne rejoue aucune migration.
+`upgradeBackupData` enchaîne désormais les conversions de la plus ancienne à la
+plus récente, exactement comme Dexie enchaîne ses migrations.
+
+Sans prêt saisi, la carte du patrimoine disparaît entièrement, ligne de
+patrimoine net comprise : une carte « 0 € de dette » n'apprendrait rien et
+occuperait l'écran.
+
+Vérifié dans un navigateur : migration d'une base en version 5 contenant un
+prêt, ajout d'un second, modification, garde-fous de saisie, déduction des deux
+dettes du patrimoine net, suppression sans effet sur les opérations, et
+disparition de la carte quand il n'en reste aucun.

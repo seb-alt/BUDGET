@@ -23,12 +23,6 @@ const settings = (): Settings => ({
   peaAccountId: 'pea',
   assuranceVieAccountId: 'av',
   defaultAccountId: 'courant',
-  studentLoan: {
-    initialAmount: 3800000,
-    monthlyPayment: 35000,
-    remainingCapital: 3800000,
-    lastUpdated: '2026-09-01',
-  },
   createdAt: '2026-09-01T00:00:00.000Z',
   updatedAt: '2026-09-01T00:00:00.000Z',
 })

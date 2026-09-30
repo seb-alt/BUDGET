@@ -39,6 +39,7 @@ export const BACKUP_TABLES = [
   'microForecasts',
   'settings',
   'microSettings',
+  'loans',
 ] as const
 
 export type BackupTable = (typeof BACKUP_TABLES)[number]

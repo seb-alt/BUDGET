@@ -210,12 +210,31 @@ Le soleil ou la lune bascule entre clair et sombre. L'engrenage ouvre les
 | **Apparence** | Automatique (suit ton téléphone), Clair ou Sombre |
 | **Budget mensuel** | le montant alloué à chaque catégorie |
 | **Épargne et prêt** | assurance-vie mensuelle, plafond du LEP |
+| **Prêts** | tes emprunts en cours |
 | **Catégories** | créer, renommer, réordonner, désactiver, supprimer |
 | **Comptes** | tes comptes bancaires et placements |
 | **Opérations récurrentes** | loyer, abonnements, prêt étudiant |
 | **Micro-entreprise** | taux URSSAF, délai de paiement, numérotation |
 | **Rapport mensuel** | **les exports Excel et PDF** |
 | **Sauvegarde** | **la sauvegarde complète** |
+
+### Tes prêts
+
+**Paramètres → Prêts** : ajoutes-en autant que tu veux, modifie-les, supprime-les.
+Chacun a un nom, un montant emprunté, une mensualité et un capital restant dû.
+
+Ils apparaissent alors dans l'onglet **Patrimoine**, avec une barre de
+progression, et se déduisent de ton **patrimoine net**. Si tu n'en saisis
+aucun, la carte n'apparaît pas du tout.
+
+**Le capital restant dû, c'est toi qui le mets à jour.** L'application pourrait
+le diminuer toute seule chaque mois, mais elle te mentirait : une mensualité
+paie d'abord des intérêts, et la part qui rembourse vraiment le capital change
+à chaque échéance. Recopie le chiffre de ton relevé de prêt deux fois par an,
+c'est plus juste. La date de ta dernière mise à jour est affichée à côté.
+
+Supprimer un prêt **ne touche pas à tes opérations** : tes remboursements
+appartiennent à leur catégorie budgétaire, pas au prêt.
 
 ### Faire évoluer tes catégories
 
