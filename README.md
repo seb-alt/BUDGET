@@ -34,6 +34,7 @@ src/
     settings/           # écran Paramètres
   domain/
     backup/             # format de sauvegarde, validation, CSV
+    export/             # archive ZIP, classeur Excel, rapport d'un mois
     budget/             # LES CALCULS, en TypeScript pur, sans React ni Dexie
     operations/         # recherche et filtres
     patrimony/          # soldes des comptes
@@ -49,6 +50,7 @@ src/
     transactions.ts     # écriture et validation des opérations
     budgets.ts          # quel budget s'applique à quel mois
     recurring.ts        # règles récurrentes : application et confirmation
+    monthlyReport.ts    # tout ce qu'il faut savoir sur un mois, en une fois
   assets/               # la police Inter, embarquée dans l'application
   utils/                # dates, montants
   main.tsx              # point d'entrée : remplit la base puis affiche React
@@ -89,7 +91,7 @@ se met alors à jour au lieu d'être effacée.
 - [x] **Gel des budgets mensuels** — un mois révolu ne bouge plus (§11)
 - [x] **Étape 4** — moteur d'épargne flexible et répartition LEP / PEA
 - [x] **Étape 5** — écran Paramètres
-- [ ] Export Excel (§12) — **décision en attente, voir plus bas**
+- [x] **Étape 12** — rapport mensuel en Excel (§12)
 - [x] **Étape 7** — onglet Patrimoine
 - [x] **Étape 8** — onglet Micro-entreprise
 - [x] **Étape 10** — opérations récurrentes (§7)
@@ -241,11 +243,47 @@ perdent les réglages et les liens entre tables. Ils sont écrits pour qu'Excel 
 français les ouvre du premier coup — séparateur point-virgule, fins de ligne
 CRLF, marqueur UTF-8 en tête, montants en nombres à virgule sans symbole €.
 
-### Décision en attente : l'export Excel
+### Le rapport mensuel en Excel (§12)
 
-Le §12 prévoit un `.xlsx` multi-onglets. Produire ce format demande soit une
-bibliothèque (~1 Mo, à maintenir des années), soit un générateur maison
-(un `.xlsx` est une archive ZIP de fichiers XML). À trancher ensemble.
+Depuis **Paramètres → Rapport mensuel** : on choisit un mois, on obtient
+`budget-2026-09.xlsx` — un nom qui se classe tout seul par ordre
+chronologique. Cinq feuilles : Résumé, Opérations, Budget, Comptes, et
+Factures s'il y en a.
+
+À ne pas confondre avec la sauvegarde : la **sauvegarde** remet l'application
+d'aplomb et n'est pas faite pour être lue ; le **rapport** sert à regarder un
+mois et ne restaure rien.
+
+**Les montants sont de vrais nombres**, avec un format d'affichage en euros.
+C'est toute la différence avec un CSV : on peut additionner, trier, faire un
+tableau croisé. Un montant écrit « 1 234,56 € » serait du texte, donc inerte.
+Les dates aussi sont de vraies dates.
+
+**Le classeur est fabriqué à la main, sans bibliothèque.** Un `.xlsx` est une
+archive ZIP contenant des fichiers XML ; `domain/export/zip.ts` écrit
+l'archive (sans compression — le format l'autorise et Excel l'accepte) et
+`domain/export/xlsx.ts` écrit le XML. Coût total : **14 Ko** dans le fichier
+que ton téléphone télécharge, contre plusieurs centaines pour une
+bibliothèque, et aucune dépendance à surveiller pendant des années. Les deux
+sont testés, et le fichier produit a été relu par un outil tiers pour
+vérifier qu'Excel l'accepterait.
+
+Une règle vaut d'être connue : **le format est celui de la colonne, mais la
+cellule a le dernier mot.** La feuille Résumé mélange forcément « Entrées du
+mois | 2 100 € » et « Mois | SEPTEMBRE 2026 » dans la même colonne. Si la
+colonne imposait son format, le texte serait perdu — c'est exactement ce qui
+arrivait avant que cette règle existe.
+
+`db/monthlyReport.ts` est le **seul** endroit qui décide de ce que contient un
+mois, et il appelle les mêmes fonctions que l'accueil (`computeMonthSummary`,
+`applyFlexibleEnvelope`, `computeAccountBalances`, `computeMicroSummary`). Un
+export qui raconterait autre chose que l'écran serait pire que pas d'export.
+
+Attention à la colonne **Montant** de la feuille Opérations : elle est signée
+du point de vue du compte de la colonne « Compte ». Additionner toutes les
+lignes mélangerait donc les comptes — c'est le Résumé qui applique les règles
+du budget (un virement n'est pas une dépense, la micro ne se mélange pas au
+personnel).
 
 ### Paramètres : ce qui est protégé
 
