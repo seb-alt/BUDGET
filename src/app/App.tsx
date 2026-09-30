@@ -20,6 +20,7 @@ import { MicroScreen } from '../features/micro/MicroScreen'
 import { PatrimonyScreen } from '../features/patrimony/PatrimonyScreen'
 import { SettingsSheet } from '../features/settings/SettingsSheet'
 import type { Transaction } from '../db/types'
+import { useServiceWorker } from './useServiceWorker'
 import './App.css'
 
 type Tab = 'accueil' | 'operations' | 'patrimoine' | 'micro'
@@ -88,6 +89,7 @@ export default function App() {
   const [isBalancesOpen, setBalancesOpen] = useState(false)
   const [isSettingsOpen, setSettingsOpen] = useState(false)
   const [toast, setToast] = useState<string>()
+  const { updateReady, applyUpdate } = useServiceWorker()
 
   // Le message de confirmation disparaît tout seul au bout de 2,5 secondes.
   useEffect(() => {
@@ -100,6 +102,17 @@ export default function App() {
     <div className="app">
       {/* §3 : les Paramètres s'ouvrent par l'engrenage en haut à droite,
           jamais depuis la barre du bas, réservée à la navigation. */}
+      {/* Recharger sans prévenir ferait perdre une saisie en cours : c'est
+          toi qui choisis le moment. */}
+      {updateReady && (
+        <div className="app-update" role="status">
+          <span>Une nouvelle version est prête.</span>
+          <button type="button" onClick={applyUpdate}>
+            Recharger
+          </button>
+        </div>
+      )}
+
       <header className="app-header">
         <button
           type="button"

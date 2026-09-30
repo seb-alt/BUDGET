@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Budget">
+  <!--
+    Variante « maskable » : Android recadre l'icône selon la forme choisie par
+    le téléphone (cercle, goutte, carré arrondi…). Le fond couvre donc toute la
+    surface, et le symbole reste dans les 80 % centraux pour ne jamais être rogné.
+  -->
+  <rect width="512" height="512" fill="#3a63d8"/>
+  <text x="256" y="256" fill="#ffffff" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+        font-size="216" font-weight="600" text-anchor="middle" dominant-baseline="central">€</text>
+</svg>

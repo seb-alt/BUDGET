@@ -23,7 +23,9 @@ npm run lint    # analyse le code
 
 ```
 src/
-  app/App.tsx           # coquille : navigation basse et bouton +
+  app/
+    App.tsx             # coquille : navigation basse et bouton +
+    useServiceWorker.ts # installation hors ligne et bannière de mise à jour
   features/
     dashboard/          # accueil : indicateurs, cartes budget, graphiques
     micro/              # micro-entreprise : factures, clients, prévisionnel
@@ -89,7 +91,7 @@ se met alors à jour au lieu d'être effacée.
 - [x] **Étape 8** — onglet Micro-entreprise
 - [ ] Opérations récurrentes (§7)
 - [x] **Étape 6** — sauvegarde, restauration et exports CSV
-- [ ] PWA installable
+- [x] **Étape 9** — PWA installable et hors connexion
 
 ### Graphiques
 
@@ -119,6 +121,39 @@ deux formulaires n'auraient plus validé la même chose.
 `put`), en conservant son identifiant et sa date de création. C'est ce qui
 garantit qu'en transformant une dépense en transfert, l'ancienne catégorie
 disparaît vraiment de la base au lieu d'y rester.
+
+### Application installable et hors connexion (§1)
+
+`npm run build` produit une PWA : une icône sur l'écran d'accueil, une
+application plein écran, et un démarrage sans réseau.
+
+Le service worker (`public/sw.js`) est écrit à la main plutôt que généré par
+une bibliothèque : une cinquantaine de lignes lisibles, zéro dépendance.
+
+**Le piège évité.** Une PWA peut rester figée sur une ancienne version pour
+toujours, parce que son service worker sert indéfiniment de vieux fichiers —
+et rien ne le signale. Deux garde-fous :
+
+- Le nom du cache vient de l'identifiant de build passé dans l'adresse du
+  service worker (`sw.js?v=...`), injecté par Vite. Un nouveau build ⇒ nouvelle
+  adresse ⇒ nouveau service worker ⇒ cache neuf et suppression des anciens.
+- La page elle-même est servie **réseau d'abord** : dès qu'il y a du réseau, tu
+  as la dernière version. Le cache n'est qu'un filet hors ligne.
+
+Les fichiers de `assets/` portent une empreinte dans leur nom : à nom égal leur
+contenu ne change jamais, donc ils sont servis depuis le cache sans risque.
+
+**La mise à jour ne s'impose pas.** Le nouveau service worker attend
+(`skipWaiting` n'est PAS appelé à l'installation) ; l'application affiche une
+bannière et n'active la nouvelle version qu'après ton accord. Prendre la main
+d'autorité remplacerait les fichiers sous les pieds d'une page qui continue de
+tourner avec l'ancien code, et ferait perdre une saisie en cours.
+
+**L'ordre du nettoyage compte.** Le service worker prend la main sur les pages
+(`clients.claim()`) AVANT de supprimer les anciens caches. Dans l'autre sens,
+l'ancien service worker contrôle encore les pages pendant le nettoyage : la
+moindre requête qu'il traite rouvre le cache qu'on vient d'effacer, et les
+caches périmés s'accumulent build après build.
 
 ### Micro-entreprise (§9)
 

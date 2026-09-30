@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Budget">
+  <!--
+    Icône provisoire, comme le reste du design (§13) : neutre et lisible à
+    petite taille. Le symbole € sur fond plein reste identifiable à 48 px,
+    là où un dessin détaillé deviendrait une tache.
+  -->
+  <rect width="512" height="512" rx="114" fill="#3a63d8"/>
+  <text x="256" y="256" fill="#ffffff" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+        font-size="300" font-weight="600" text-anchor="middle" dominant-baseline="central">€</text>
+</svg>

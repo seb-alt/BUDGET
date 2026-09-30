@@ -2,9 +2,22 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover : l'application dessine jusque sous l'encoche, et
+         le CSS réserve la place avec env(safe-area-inset-*). -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Budget</title>
+    <meta name="description" content="Budget courant, patrimoine et micro-entreprise. Données 100 % locales." />
+
+    <link rel="icon" type="image/png" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- La couleur de la barre système suit le thème : une barre claire
+         au-dessus d'une application sombre trancherait désagréablement. -->
+    <meta name="theme-color" content="#f5f6f8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Budget" />
   </head>
   <body>
     <div id="root"></div>
