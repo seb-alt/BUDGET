@@ -21,6 +21,7 @@ import { PatrimonyScreen } from '../features/patrimony/PatrimonyScreen'
 import { SettingsSheet } from '../features/settings/SettingsSheet'
 import type { Transaction } from '../db/types'
 import { useServiceWorker } from './useServiceWorker'
+import { ThemeToggle } from './ThemeToggle'
 import './App.css'
 
 type Tab = 'accueil' | 'operations' | 'patrimoine' | 'micro'
@@ -114,19 +115,28 @@ export default function App() {
       )}
 
       <header className="app-header">
+        <ThemeToggle />
+
         <button
           type="button"
-          className="app-settings"
+          className="app-icon-button"
           aria-label="Paramètres"
           onClick={() => setSettingsOpen(true)}
         >
+          {/*
+            Un vrai engrenage : denture courte et épaisse posée sur un anneau
+            large. L'ancien dessin — un petit disque et huit rayons fins — se
+            lisait comme un soleil, ce qui devenait franchement ambigu à côté
+            d'un bouton de thème qui, lui, en affiche un pour de bon.
+          */}
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-            <circle cx="11" cy="11" r="3" stroke="currentColor" strokeWidth="1.6" />
+            <circle cx="11" cy="11" r="6" stroke="currentColor" strokeWidth="1.6" />
+            <circle cx="11" cy="11" r="2.4" stroke="currentColor" strokeWidth="1.6" />
             <path
-              d="M11 2.5v2M11 17.5v2M19.5 11h-2M4.5 11h-2M17 5l-1.4 1.4M6.4 15.6 5 17M17 17l-1.4-1.4M6.4 6.4 5 5"
+              d="M11 3.2v2M11 16.8v2M18.8 11h-2M5.2 11h-2M16.5 5.5l-1.4 1.4M6.9 15.1l-1.4 1.4M16.5 16.5l-1.4-1.4M6.9 6.9 5.5 5.5"
               stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
+              strokeWidth="2.2"
+              strokeLinecap="butt"
             />
           </svg>
         </button>

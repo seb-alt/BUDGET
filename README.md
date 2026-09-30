@@ -25,6 +25,8 @@ npm run lint    # analyse le code
 src/
   app/
     App.tsx             # coquille : navigation basse et bouton +
+    theme.ts            # choix du thème : automatique, clair, sombre
+    ThemeToggle.tsx     # le bouton soleil / lune de l'en-tête
     useServiceWorker.ts # installation hors ligne et bannière de mise à jour
   features/
     dashboard/          # accueil : indicateurs, cartes budget, graphiques
@@ -103,6 +105,7 @@ elles ont été construites, pas dans celui du document.
 - [x] **Étape 11** — identité visuelle : police, palette, mode sombre (§13)
 - [x] **Étape 12** — rapport mensuel en Excel (§12)
 - [x] **Étape 13** — rapport mensuel en PDF (§12)
+- [x] **Étape 14** — bascule clair / sombre
 
 ### Graphiques
 
@@ -494,3 +497,46 @@ que c'est le gras qui porte l'information et la couleur qui la renforce.
 Sur un écran étroit, les colonnes secondaires disparaissent — le groupe d'une
 catégorie, la date d'émission d'une facture, le compte d'une opération. Jamais
 l'information principale, et jamais sur le papier ni dans le classeur Excel.
+
+### La bascule clair / sombre
+
+Le bouton soleil / lune est en haut de l'écran, à gauche de l'engrenage.
+« Automatique » se retrouve dans **Paramètres → Apparence**.
+
+**Trois états, pas deux.** « Automatique » suit le réglage de l'appareil, et
+c'est l'état de départ. Un bouton qui se contenterait d'alterner clair et
+sombre supprimerait cette possibilité dès le premier appui — d'où la section
+dans les Paramètres, qui la nomme et permet d'y revenir.
+
+**L'icône montre ce qu'on va obtenir, pas ce qu'on a.** En clair elle affiche
+une lune : « appuie pour passer en sombre ». L'état actuel, on l'a déjà sous
+les yeux — c'est l'écran.
+
+**Le choix est dans `localStorage`, pas dans la base.** Deux raisons : c'est
+une préférence d'appareil (sombre sur le téléphone, clair sur l'ordinateur),
+donc elle n'a rien à faire dans une sauvegarde qu'on restaurera ailleurs ; et
+`localStorage` se lit instantanément, avant que React démarre.
+
+**Le clignement au démarrage**, c'est le vrai piège. Sans précaution,
+quelqu'un qui a choisi le sombre verrait l'application apparaître en clair une
+fraction de seconde à chaque ouverture, le temps que React lise sa préférence.
+Un petit script dans `index.html` pose donc le thème **avant le premier pixel
+affiché**. Il est écrit sans module ni dépendance, pour n'avoir rien à
+télécharger avant de s'exécuter. Un test le vérifie en observant la page avant
+même que React ait pu s'exécuter.
+
+**Une seule déclaration par couleur.** `index.css` utilise
+`light-dark(clair, sombre)`, et c'est `color-scheme` qui décide laquelle
+s'applique. Avant, il fallait deux blocs complets : quarante lignes en double,
+et le risque permanent d'en modifier une et d'oublier l'autre. Bonus : les
+éléments fournis par le navigateur — barres de défilement, sélecteur de date —
+suivent le thème eux aussi.
+
+Contrepartie assumée : `light-dark()` demande un navigateur de 2024 ou plus
+récent (Chrome 123, Safari 17.5, Firefox 120). Sur plus ancien, l'application
+s'afficherait sans ses couleurs. C'est à peu près la même exigence que
+`:has()` et `color-mix()`, déjà utilisés ailleurs.
+
+Au passage, l'icône des Paramètres a été redessinée. L'ancienne — un petit
+disque et huit rayons fins — se lisait comme un soleil, ce qui devenait
+franchement ambigu à côté d'un bouton de thème qui en affiche un pour de bon.

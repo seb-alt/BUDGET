@@ -9,12 +9,13 @@
 .app-header {
   display: flex;
   justify-content: flex-end;
+  gap: var(--space-1);
   max-width: 34rem;
   margin: 0 auto;
   padding: var(--space-2) var(--space-2) 0;
 }
 
-.app-settings {
+.app-icon-button {
   appearance: none;
   border: none;
   background: transparent;
@@ -25,9 +26,10 @@
   place-items: center;
   color: var(--text-muted);
   cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease;
 }
 
-.app-settings:hover {
+.app-icon-button:hover {
   background: var(--surface-sunken);
   color: var(--text);
 }

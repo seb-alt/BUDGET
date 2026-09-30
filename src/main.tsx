@@ -13,12 +13,17 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './app/App.tsx'
+import { initTheme } from './app/theme'
 import { syncMonthlyBudgets } from './db/budgets'
 import { applyAutomaticRules } from './db/recurring'
 import { seedInitialData } from './db/seed'
 import './index.css'
 
 async function start() {
+  // Avant tout le reste : le script d'index.html a déjà posé le thème pour
+  // éviter le clignement, on le reprend ici pour que React le connaisse.
+  initTheme()
+
   try {
     const report = await seedInitialData()
     // Fige les mois révolus et remet la copie du mois en cours à jour (§11).

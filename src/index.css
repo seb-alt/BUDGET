@@ -59,42 +59,60 @@
 }
 
 :root {
+  /*
+   * UNE SEULE DÉCLARATION PAR COULEUR, POUR LES DEUX THÈMES.
+   *
+   * `light-dark(clair, sombre)` choisit tout seul selon le thème actif. Avant,
+   * il fallait écrire deux blocs complets, l'un pour le clair et l'autre pour
+   * le sombre : quarante lignes en double, et le risque permanent d'en
+   * modifier une et d'oublier l'autre.
+   *
+   * C'est `color-scheme`, juste en dessous, qui décide lequel des deux est
+   * pris. Le laisser à `light dark` veut dire « suis le réglage du système » ;
+   * le forcer à l'un ou l'autre (voir le bas de ce fichier) impose un thème.
+   * Bonus : les éléments fournis par le navigateur — barres de défilement,
+   * sélecteur de date — suivent aussi, ce qu'un simple jeu de variables ne
+   * permettait pas.
+   */
+  color-scheme: light dark;
+
   /* Surfaces et texte — gris clair et anthracite, très légèrement chauds pour
      s'accorder à l'orange. Un gris parfaitement neutre le ferait virer au
      rose. */
-  --bg: #f4f3f1;
-  --surface: #ffffff;
-  --surface-raised: #ffffff;
-  --surface-sunken: #ebe9e6;
-  --border: #e3e1dd;
-  --border-soft: #eeece9;
-  --text: #1b1b1a;
-  --text-muted: #6b6a67;
-  --text-faint: #74736c;
+  --bg: light-dark(#f4f3f1, #141413);
+  --surface: light-dark(#ffffff, #1c1c1b);
+  --surface-raised: light-dark(#ffffff, #242422);
+  --surface-sunken: light-dark(#ebe9e6, #101010);
+  --border: light-dark(#e3e1dd, #2d2d2a);
+  --border-soft: light-dark(#eeece9, #242422);
+  --text: light-dark(#1b1b1a, #ebebe9);
+  --text-muted: light-dark(#6b6a67, #a3a29e);
+  --text-faint: light-dark(#74736c, #8a8981);
 
   /* L'accent. Deux valeurs, parce qu'un fond et un texte n'ont pas les mêmes
      exigences de lisibilité :
        --accent     : les aplats (bouton principal, onglet actif, sélection) ;
        --accent-ink : l'orange quand il sert de TEXTE sur fond clair. L'orange
                       vif n'y passerait pas le seuil de contraste, il est donc
-                      assombri.
+                      assombri. Sur fond sombre la question ne se pose pas, et
+                      les deux se rejoignent.
      Sur l'aplat orange, l'étiquette est anthracite et non blanche : le blanc
      sur cet orange descend à 3,7 pour 1, sous le seuil exigé pour du texte
      courant. L'anthracite tient 4,7. */
-  --accent: #dd5f1e;
-  --accent-ink: #b8480f;
-  --accent-soft: #fbeade;
-  --accent-text: #1b1b1a;
+  --accent: light-dark(#dd5f1e, #f08a4e);
+  --accent-ink: light-dark(#b8480f, #f08a4e);
+  --accent-soft: light-dark(#fbeade, #33221a);
+  --accent-text: light-dark(#1b1b1a, #141413);
 
   /* Couleurs de sens, volontairement sourdes. Elles ne sont jamais la seule
      information : un signe + ou −, ou un mot, accompagne toujours le montant,
      pour rester lisible en cas de daltonisme. */
-  --positive: #1a6f4b;
-  --positive-soft: #e7f1ec;
-  --negative: #ab2b3f;
-  --negative-soft: #f9eaec;
-  --negative-text: #ffffff;
-  --neutral-soft: #ebe9e6;
+  --positive: light-dark(#1a6f4b, #56b98a);
+  --positive-soft: light-dark(#e7f1ec, #16271f);
+  --negative: light-dark(#ab2b3f, #e58095);
+  --negative-soft: light-dark(#f9eaec, #2e1a1d);
+  --negative-text: light-dark(#ffffff, #141413);
+  --neutral-soft: light-dark(#ebe9e6, #242422);
 
   /* Espacements */
   --space-1: 0.25rem;
@@ -106,13 +124,17 @@
 
   /* Rayons et ombres. Les ombres sont presque invisibles : sur un fond gris
      clair, un simple filet suffit à décoller une carte, et c'est ce qui donne
-     l'aspect posé plutôt que l'effet « boîtes qui flottent ». */
+     l'aspect posé plutôt que l'effet « boîtes qui flottent ».
+
+     Sur fond sombre, une ombre ne se voit pas : c'est le filet de bordure qui
+     sépare les cartes. D'où la couleur transparente — la forme de l'ombre
+     reste, mais elle ne peint rien. */
   --radius-sm: 0.5rem;
   --radius: 0.875rem;
   --radius-lg: 1.25rem;
-  --shadow-card: 0 1px 2px rgb(27 27 26 / 0.04);
-  --shadow-raised: 0 8px 24px rgb(27 27 26 / 0.12);
-  --backdrop: rgb(27 27 26 / 0.4);
+  --shadow-card: 0 1px 2px light-dark(rgb(27 27 26 / 0.04), transparent);
+  --shadow-raised: 0 8px 24px light-dark(rgb(27 27 26 / 0.12), rgb(0 0 0 / 0.5));
+  --backdrop: light-dark(rgb(27 27 26 / 0.4), rgb(0 0 0 / 0.6));
 
   /* Hauteur de la barre de navigation, réutilisée pour les marges du bas. */
   --nav-height: 4.25rem;
@@ -128,16 +150,17 @@
      saturation minimale, la séparation sous protanopie et deutéranopie, et le
      contraste sur la carte. Les quatre passent en voisines (barres groupées),
      et les trois premières passent même toutes paires confondues — le cas de
-     l'anneau, où la première touche la dernière. Ne pas les changer sans
-     revalider. */
-  --chart-1: #dd5f1e; /* charges fixes */
-  --chart-2: #2f6fc4; /* épargne & investissement */
-  --chart-3: #0f8a6a; /* loisirs */
-  --chart-4: #8b4bb0; /* 4e série : quatrième compte du patrimoine */
+     l'anneau, où la première touche la dernière. Les valeurs sombres ne sont
+     pas un éclaircissement automatique des claires : chacune a été revalidée
+     contre la carte sombre. Ne pas les changer sans revalider. */
+  --chart-1: light-dark(#dd5f1e, #e56a2b); /* charges fixes */
+  --chart-2: light-dark(#2f6fc4, #5a8de0); /* épargne & investissement */
+  --chart-3: light-dark(#0f8a6a, #25a482); /* loisirs */
+  --chart-4: light-dark(#8b4bb0, #a273d4); /* 4e série : 4e compte du patrimoine */
   /* Couleur d'alerte, réservée au dépassement. Jamais utilisée comme couleur
      de série, pour qu'elle garde son sens — et choisie assez loin de l'orange
      pour qu'un dépassement ne se confonde pas avec les charges fixes. */
-  --chart-over: #ab2b3f;
+  --chart-over: light-dark(#ab2b3f, #bb3550);
 
   /* La police système reste en secours : si le fichier ne se charge pas, le
      texte s'affiche quand même, dans quelque chose de proche. */
@@ -151,47 +174,23 @@
   -webkit-text-size-adjust: 100%;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #141413;
-    --surface: #1c1c1b;
-    --surface-raised: #242422;
-    --surface-sunken: #101010;
-    --border: #2d2d2a;
-    --border-soft: #242422;
-    --text: #ebebe9;
-    --text-muted: #a3a29e;
-    --text-faint: #8a8981;
+/*
+ * LE CHOIX MANUEL DU THÈME.
+ *
+ * Sans attribut `data-theme`, l'application suit le réglage du système : c'est
+ * le comportement par défaut, et il reste le bon pour la plupart des gens.
+ *
+ * L'attribut est posé sur `<html>` par un petit script placé dans index.html,
+ * AVANT le premier affichage. C'est ce qui évite de voir l'application
+ * apparaître en clair pendant une fraction de seconde avant de basculer en
+ * sombre.
+ */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
 
-    /* Sur fond sombre, le même orange éclairci passe partout : en aplat comme
-       en texte. Une seule valeur suffit donc. */
-    --accent: #f08a4e;
-    --accent-ink: #f08a4e;
-    --accent-soft: #33221a;
-    --accent-text: #141413;
-
-    --positive: #56b98a;
-    --positive-soft: #16271f;
-    --negative: #e58095;
-    --negative-soft: #2e1a1d;
-    --negative-text: #141413;
-    --neutral-soft: #242422;
-
-    /* Sur fond sombre, une ombre ne se voit pas : c'est le filet de bordure
-       qui sépare les cartes. */
-    --shadow-card: none;
-    --shadow-raised: 0 8px 28px rgb(0 0 0 / 0.5);
-    --backdrop: rgb(0 0 0 / 0.6);
-
-    /* Mêmes teintes, redosées pour le fond sombre — pas un simple
-       éclaircissement automatique : chaque valeur a été revalidée contre la
-       carte sombre. */
-    --chart-1: #e56a2b;
-    --chart-2: #5a8de0;
-    --chart-3: #25a482;
-    --chart-4: #a273d4;
-    --chart-over: #bb3550;
-  }
+:root[data-theme='dark'] {
+  color-scheme: dark;
 }
 
 * {

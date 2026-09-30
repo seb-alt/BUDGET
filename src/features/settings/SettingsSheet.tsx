@@ -20,6 +20,7 @@ import { CategoriesSection } from './CategoriesSection'
 import { MicroSection } from './MicroSection'
 import { RecurringSection } from './RecurringSection'
 import { ReportSection } from './ReportSection'
+import { ThemeSection } from './ThemeSection'
 import { SavingsSection } from './SavingsSection'
 import './Settings.css'
 
@@ -45,6 +46,16 @@ export function SettingsSheet({ onClose, onSaved }: SettingsSheetProps) {
   return (
     <Sheet title="Paramètres" onClose={onClose}>
       <div className="set-body">
+        <details className="set-card">
+          <summary>
+            <span>Apparence</span>
+            <span className="set-caret" aria-hidden="true">
+              ›
+            </span>
+          </summary>
+          <ThemeSection />
+        </details>
+
         <details className="set-card" open>
           <summary>
             <span>Budget mensuel</span>
