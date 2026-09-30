@@ -42,6 +42,7 @@ src/
   domain/
     backup/             # format de sauvegarde, validation, CSV
     export/             # archive ZIP, classeur Excel, rapport d'un mois
+    migration/          # renommages d'identifiants, partagés base et sauvegarde
     budget/             # LES CALCULS, en TypeScript pur, sans React ni Dexie
     operations/         # recherche et filtres
     patrimony/          # soldes des comptes
@@ -111,6 +112,7 @@ elles ont été construites, pas dans celui du document.
 - [x] **Étape 13** — rapport mensuel en PDF (§12)
 - [x] **Étape 14** — bascule clair / sombre
 - [x] **Étape 15** — publication sur GitHub Pages et guide d'utilisation
+- [x] **Étape 16** — remplissage initial neutre, pour un dépôt publiable
 
 ### Graphiques
 
@@ -577,3 +579,53 @@ Vérifié dans les deux configurations : à la racine, et servi depuis un
 sous-dossier par un serveur qui imite GitHub Pages — démarrage, manifeste
 résolu, portée du service worker, contenu du cache, et fonctionnement hors
 connexion.
+
+### Un remplissage initial neutre (version 5)
+
+Le dépôt est destiné à être public. Le remplissage initial ne contient donc
+plus aucune valeur personnelle : les catégories de revenus s'appellent
+« Revenu principal » et « Revenu secondaire », le compte courant s'appelle
+« Compte courant », et tous les montants partent à zéro. Chacun saisit les
+siens dans les Paramètres, et ils restent dans son navigateur.
+
+Les identifiants aussi portaient des noms : `cat-itaxia`, `acc-cic`. Ils sont
+devenus `cat-revenu-1`, `acc-courant`.
+
+**Changer un identifiant n'est pas anodin.** Il est recopié dans les
+opérations, les budgets figés, les relevés de soldes, les règles récurrentes
+et les réglages. Le changer au seul endroit du remplissage initial produirait
+des doublons sur une base existante : l'ancienne catégorie resterait, avec
+toutes ses opérations, et la nouvelle apparaîtrait vide à côté.
+
+D'où la **version 5** de la base, qui renomme partout. Et d'où, surtout, le
+fait que la logique vive dans `domain/migration/renameIds.ts` plutôt que dans
+la migration elle-même :
+
+> **Restaurer une sauvegarde ne rejoue aucune migration.** Dexie n'exécute ses
+> `upgrade()` qu'au changement de version de la base, pas à chaque écriture.
+> Une sauvegarde d'avant la version 5, restaurée dans une base déjà migrée,
+> réintroduirait donc les anciens identifiants. `restoreBackup` applique la
+> même transformation, depuis le même fichier — les deux chemins ne peuvent
+> pas diverger.
+
+Vérifié sur une vraie base : une base en version 4 est construite à la main
+avec les anciens identifiants et des données dans huit tables, puis
+l'application est lancée. Contrôles : plus aucun ancien identifiant, aucun
+doublon, et aucune donnée perdue — opérations, soldes, budget figé, règle
+récurrente, réglages et rattachements d'épargne suivent tous.
+
+### Faire évoluer ses catégories
+
+**Paramètres → Catégories** : ajouter, renommer, réordonner, désactiver,
+supprimer. L'écran **Budget mensuel** construit sa liste à partir des
+catégories — une nouvelle y apparaît donc aussitôt avec son champ de montant,
+puis dans la saisie et sur la carte de son groupe.
+
+Deux garde-fous :
+
+- une catégorie **utilisée par des opérations ne peut pas être supprimée** ;
+  le message propose de la désactiver, ce qui la retire de la saisie sans
+  abîmer l'historique ;
+- on n'ajoute pas de catégorie au groupe **Épargne** : ces enveloppes sont
+  alimentées par des virements et doivent pointer vers des comptes précis
+  (`savingAccountIds`), ce qu'un simple nom ne suffit pas à décrire.

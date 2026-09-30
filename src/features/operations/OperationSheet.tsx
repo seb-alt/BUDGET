@@ -12,7 +12,8 @@
  * plutôt que celui du téléphone, pour deux raisons : il ne recouvre pas le
  * formulaire, et il ne peut produire que des montants valides.
  *
- * Tout le reste a une valeur par défaut raisonnable (aujourd'hui, compte CIC),
+ * Tout le reste a une valeur par défaut raisonnable (aujourd'hui, le compte
+ * courant),
  * donc une dépense courante se saisit en : montant, catégorie, Enregistrer.
  */
 
@@ -104,7 +105,7 @@ export function OperationSheet({ transaction, micro = false, onClose, onSaved }:
   )
 
   // Comptes par défaut : tant que tu n'as rien choisi, on retombe sur le compte
-  // défini dans les paramètres (CIC). On le DÉDUIT au moment de l'affichage
+  // défini dans les paramètres. On le DÉDUIT au moment de l'affichage
   // plutôt que de l'écrire dans l'état depuis un effet — ça évite un rendu
   // supplémentaire et un état qui peut se désynchroniser des réglages.
   const effectiveAccountId =

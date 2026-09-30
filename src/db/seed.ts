@@ -7,7 +7,7 @@
  * ---------------------------------------------------------------------------
  * POURQUOI ÇA NE DUPLIQUE JAMAIS
  * ---------------------------------------------------------------------------
- * Chaque ligne de référence a un identifiant FIXE et lisible ('acc-cic',
+ * Chaque ligne de référence a un identifiant FIXE et lisible ('acc-courant',
  * 'cat-shopping'...). Avant d'insérer, on regarde quels identifiants existent
  * déjà et on n'ajoute que ceux qui manquent.
  *
@@ -33,7 +33,7 @@ const now = (): string => new Date().toISOString()
 /* ------------------------------------------------------------------ */
 
 export const ACCOUNT_IDS = {
-  cic: 'acc-cic',
+  courant: 'acc-courant',
   lep: 'acc-lep',
   assuranceVie: 'acc-assurance-vie',
   pea: 'acc-pea',
@@ -56,8 +56,8 @@ export const CATEGORY_IDS = {
   /* Hors enveloppe */
   autre: 'cat-autre',
   /* Revenus personnels */
-  itaxia: 'cat-itaxia',
-  intermarche: 'cat-intermarche',
+  revenuPrincipal: 'cat-revenu-1',
+  revenuSecondaire: 'cat-revenu-2',
   revenuAutre: 'cat-revenu-autre',
   /* Dépenses micro-entreprise */
   microRcPro: 'cat-micro-rc-pro',
@@ -74,8 +74,8 @@ export const CATEGORY_IDS = {
 
 const seedAccounts = (): Account[] => [
   {
-    id: ACCOUNT_IDS.cic,
-    name: 'CIC',
+    id: ACCOUNT_IDS.courant,
+    name: 'Compte courant',
     kind: 'checking',
     countsAsSavings: false,
     order: 1,
@@ -86,7 +86,7 @@ const seedAccounts = (): Account[] => [
     name: 'LEP',
     kind: 'savings',
     countsAsSavings: true,
-    ceiling: euros(8000),
+    ceiling: euros(10000),
     order: 2,
     active: true,
   },
@@ -118,35 +118,187 @@ const seedAccounts = (): Account[] => [
 
 const seedCategories = (): Category[] => [
   /* --- CHARGES FIXES : 800 € --------------------------------------- */
-  { id: CATEGORY_IDS.abonnements, name: 'Abonnements', kind: 'expense', group: 'chargesFixes', order: 1, active: true, quickPick: true },
-  { id: CATEGORY_IDS.essence, name: 'Essence / Transport', kind: 'expense', group: 'chargesFixes', order: 2, active: true, quickPick: true },
-  { id: CATEGORY_IDS.pret, name: 'Prêt étudiant', kind: 'expense', group: 'chargesFixes', order: 3, active: true, quickPick: true },
-  { id: CATEGORY_IDS.impots, name: 'Impôts', kind: 'expense', group: 'chargesFixes', order: 4, active: true, quickPick: true },
+  {
+    id: CATEGORY_IDS.abonnements,
+    name: 'Abonnements',
+    kind: 'expense',
+    group: 'chargesFixes',
+    order: 1,
+    active: true,
+    quickPick: true,
+  },
+  {
+    id: CATEGORY_IDS.essence,
+    name: 'Essence / Transport',
+    kind: 'expense',
+    group: 'chargesFixes',
+    order: 2,
+    active: true,
+    quickPick: true,
+  },
+  {
+    id: CATEGORY_IDS.pret,
+    name: 'Prêt étudiant',
+    kind: 'expense',
+    group: 'chargesFixes',
+    order: 3,
+    active: true,
+    quickPick: true,
+  },
+  {
+    id: CATEGORY_IDS.impots,
+    name: 'Impôts',
+    kind: 'expense',
+    group: 'chargesFixes',
+    order: 4,
+    active: true,
+    quickPick: true,
+  },
 
   /* --- ÉPARGNE / INVESTISSEMENT : 850 € ---------------------------- */
-  { id: CATEGORY_IDS.assuranceVie, name: 'Assurance-vie', kind: 'saving', group: 'epargne', order: 1, active: true, savingAccountIds: [ACCOUNT_IDS.assuranceVie] },
-  { id: CATEGORY_IDS.epargneFlexible, name: 'Enveloppe flexible LEP / PEA', kind: 'saving', group: 'epargne', order: 2, active: true, savingAccountIds: [ACCOUNT_IDS.lep, ACCOUNT_IDS.pea] },
+  {
+    id: CATEGORY_IDS.assuranceVie,
+    name: 'Assurance-vie',
+    kind: 'saving',
+    group: 'epargne',
+    order: 1,
+    active: true,
+    savingAccountIds: [ACCOUNT_IDS.assuranceVie],
+  },
+  {
+    id: CATEGORY_IDS.epargneFlexible,
+    name: 'Enveloppe flexible LEP / PEA',
+    kind: 'saving',
+    group: 'epargne',
+    order: 2,
+    active: true,
+    savingAccountIds: [ACCOUNT_IDS.lep, ACCOUNT_IDS.pea],
+  },
 
   /* --- LOISIRS : 350 € --------------------------------------------- */
-  { id: CATEGORY_IDS.sorties, name: 'Sorties', kind: 'expense', group: 'loisirs', order: 1, active: true, quickPick: true },
-  { id: CATEGORY_IDS.shopping, name: 'Shopping', kind: 'expense', group: 'loisirs', order: 2, active: true, quickPick: true },
-  { id: CATEGORY_IDS.autresLoisirs, name: 'Autres loisirs', kind: 'expense', group: 'loisirs', order: 3, active: true, quickPick: true },
+  {
+    id: CATEGORY_IDS.sorties,
+    name: 'Sorties',
+    kind: 'expense',
+    group: 'loisirs',
+    order: 1,
+    active: true,
+    quickPick: true,
+  },
+  {
+    id: CATEGORY_IDS.shopping,
+    name: 'Shopping',
+    kind: 'expense',
+    group: 'loisirs',
+    order: 2,
+    active: true,
+    quickPick: true,
+  },
+  {
+    id: CATEGORY_IDS.autresLoisirs,
+    name: 'Autres loisirs',
+    kind: 'expense',
+    group: 'loisirs',
+    order: 3,
+    active: true,
+    quickPick: true,
+  },
 
   /* --- Hors enveloppe budgétée ------------------------------------- */
-  { id: CATEGORY_IDS.autre, name: 'Autre', kind: 'expense', group: 'divers', order: 1, active: true, quickPick: true },
+  {
+    id: CATEGORY_IDS.autre,
+    name: 'Autre',
+    kind: 'expense',
+    group: 'divers',
+    order: 1,
+    active: true,
+    quickPick: true,
+  },
 
   /* --- REVENUS PERSONNELS (pas de budget prévisionnel, §4) ---------- */
-  { id: CATEGORY_IDS.itaxia, name: 'ITAXIA', kind: 'income', group: 'revenuPerso', order: 1, active: true, quickPick: true },
-  { id: CATEGORY_IDS.intermarche, name: 'INTERMARCHÉ', kind: 'income', group: 'revenuPerso', order: 2, active: true, quickPick: true },
-  { id: CATEGORY_IDS.revenuAutre, name: 'AUTRE', kind: 'income', group: 'revenuPerso', order: 3, active: true, quickPick: true },
+  {
+    id: CATEGORY_IDS.revenuPrincipal,
+    name: 'Revenu principal',
+    kind: 'income',
+    group: 'revenuPerso',
+    order: 1,
+    active: true,
+    quickPick: true,
+  },
+  {
+    id: CATEGORY_IDS.revenuSecondaire,
+    name: 'Revenu secondaire',
+    kind: 'income',
+    group: 'revenuPerso',
+    order: 2,
+    active: true,
+    quickPick: true,
+  },
+  {
+    id: CATEGORY_IDS.revenuAutre,
+    name: 'Autre revenu',
+    kind: 'income',
+    group: 'revenuPerso',
+    order: 3,
+    active: true,
+    quickPick: true,
+  },
 
   /* --- DÉPENSES MICRO-ENTREPRISE (§9) ------------------------------ */
-  { id: CATEGORY_IDS.microRcPro, name: 'RC Pro', kind: 'expense', group: 'micro', order: 1, active: true, isMicro: true },
-  { id: CATEGORY_IDS.microLogiciels, name: 'Logiciels', kind: 'expense', group: 'micro', order: 2, active: true, isMicro: true },
-  { id: CATEGORY_IDS.microMateriel, name: 'Matériel', kind: 'expense', group: 'micro', order: 3, active: true, isMicro: true },
-  { id: CATEGORY_IDS.microDeplacements, name: 'Déplacements', kind: 'expense', group: 'micro', order: 4, active: true, isMicro: true },
-  { id: CATEGORY_IDS.microAutres, name: 'Autres', kind: 'expense', group: 'micro', order: 5, active: true, isMicro: true },
-  { id: CATEGORY_IDS.microUrssaf, name: 'URSSAF', kind: 'expense', group: 'micro', order: 6, active: true, isMicro: true },
+  {
+    id: CATEGORY_IDS.microRcPro,
+    name: 'RC Pro',
+    kind: 'expense',
+    group: 'micro',
+    order: 1,
+    active: true,
+    isMicro: true,
+  },
+  {
+    id: CATEGORY_IDS.microLogiciels,
+    name: 'Logiciels',
+    kind: 'expense',
+    group: 'micro',
+    order: 2,
+    active: true,
+    isMicro: true,
+  },
+  {
+    id: CATEGORY_IDS.microMateriel,
+    name: 'Matériel',
+    kind: 'expense',
+    group: 'micro',
+    order: 3,
+    active: true,
+    isMicro: true,
+  },
+  {
+    id: CATEGORY_IDS.microDeplacements,
+    name: 'Déplacements',
+    kind: 'expense',
+    group: 'micro',
+    order: 4,
+    active: true,
+    isMicro: true,
+  },
+  {
+    id: CATEGORY_IDS.microAutres,
+    name: 'Autres',
+    kind: 'expense',
+    group: 'micro',
+    order: 5,
+    active: true,
+    isMicro: true,
+  },
+  {
+    id: CATEGORY_IDS.microUrssaf,
+    name: 'URSSAF',
+    kind: 'expense',
+    group: 'micro',
+    order: 6,
+    active: true,
+    isMicro: true,
+  },
 ]
 
 /**
@@ -157,30 +309,30 @@ const seedCategories = (): Category[] => [
  */
 const seedSettings = (): Settings => ({
   id: 1,
-  referenceIncome: euros(2000),
+  referenceIncome: euros(0),
   budgetTemplate: [
-    { categoryId: CATEGORY_IDS.abonnements, amount: euros(150) },
-    { categoryId: CATEGORY_IDS.essence, amount: euros(150) },
-    { categoryId: CATEGORY_IDS.pret, amount: euros(350) },
-    { categoryId: CATEGORY_IDS.impots, amount: euros(150) },
-    { categoryId: CATEGORY_IDS.assuranceVie, amount: euros(500) },
-    { categoryId: CATEGORY_IDS.epargneFlexible, amount: euros(350) },
-    { categoryId: CATEGORY_IDS.sorties, amount: euros(100) },
-    { categoryId: CATEGORY_IDS.shopping, amount: euros(200) },
-    { categoryId: CATEGORY_IDS.autresLoisirs, amount: euros(50) },
+    { categoryId: CATEGORY_IDS.abonnements, amount: euros(0) },
+    { categoryId: CATEGORY_IDS.essence, amount: euros(0) },
+    { categoryId: CATEGORY_IDS.pret, amount: euros(0) },
+    { categoryId: CATEGORY_IDS.impots, amount: euros(0) },
+    { categoryId: CATEGORY_IDS.assuranceVie, amount: euros(0) },
+    { categoryId: CATEGORY_IDS.epargneFlexible, amount: euros(0) },
+    { categoryId: CATEGORY_IDS.sorties, amount: euros(0) },
+    { categoryId: CATEGORY_IDS.shopping, amount: euros(0) },
+    { categoryId: CATEGORY_IDS.autresLoisirs, amount: euros(0) },
   ],
-  lepThreshold: euros(8000),
-  assuranceVieMonthly: euros(500),
+  lepThreshold: euros(10000),
+  assuranceVieMonthly: euros(0),
   flexibleSavingsCategoryId: CATEGORY_IDS.epargneFlexible,
   lepAccountId: ACCOUNT_IDS.lep,
   peaAccountId: ACCOUNT_IDS.pea,
   assuranceVieAccountId: ACCOUNT_IDS.assuranceVie,
-  defaultAccountId: ACCOUNT_IDS.cic,
+  defaultAccountId: ACCOUNT_IDS.courant,
   studentLoan: {
-    initialAmount: euros(38000),
-    monthlyPayment: euros(350),
+    initialAmount: euros(0),
+    monthlyPayment: euros(0),
     /* À recaler depuis l'onglet Patrimoine avec ton vrai capital restant dû. */
-    remainingCapital: euros(38000),
+    remainingCapital: euros(0),
     lastUpdated: new Date().toISOString().slice(0, 10),
   },
   createdAt: now(),

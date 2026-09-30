@@ -63,9 +63,9 @@ describe('monthsBetween', () => {
 
 describe('buildPatrimonySeries', () => {
   const transactions = [
-    tx({ type: 'transfer', amount: 100000, fromAccountId: 'cic', toAccountId: 'lep', date: '2026-07-15' }),
-    tx({ type: 'transfer', amount: 50000, fromAccountId: 'cic', toAccountId: 'av', date: '2026-08-15' }),
-    tx({ type: 'transfer', amount: 50000, fromAccountId: 'cic', toAccountId: 'av', date: '2026-09-15' }),
+    tx({ type: 'transfer', amount: 100000, fromAccountId: 'courant', toAccountId: 'lep', date: '2026-07-15' }),
+    tx({ type: 'transfer', amount: 50000, fromAccountId: 'courant', toAccountId: 'av', date: '2026-08-15' }),
+    tx({ type: 'transfer', amount: 50000, fromAccountId: 'courant', toAccountId: 'av', date: '2026-09-15' }),
   ]
 
   it('suit la progression mois après mois', () => {
@@ -93,8 +93,8 @@ describe('buildPatrimonySeries', () => {
 
 describe('netContributions', () => {
   const transactions = [
-    tx({ type: 'transfer', amount: 50000, fromAccountId: 'cic', toAccountId: 'av', date: '2026-08-15' }),
-    tx({ type: 'transfer', amount: 20000, fromAccountId: 'av', toAccountId: 'cic', date: '2026-09-20' }),
+    tx({ type: 'transfer', amount: 50000, fromAccountId: 'courant', toAccountId: 'av', date: '2026-08-15' }),
+    tx({ type: 'transfer', amount: 20000, fromAccountId: 'av', toAccountId: 'courant', date: '2026-09-20' }),
   ]
 
   it('additionne les entrées et retranche les sorties', () => {
@@ -116,7 +116,7 @@ describe('versements contre performance — le cœur du §8', () => {
     // Versé 500 €, le solde passe de 8 000 € à 8 600 € : 100 € de gain.
     const split = splitContributionAndPerformance(
       ['av'],
-      [tx({ type: 'transfer', amount: 50000, fromAccountId: 'cic', toAccountId: 'av', date: '2026-09-05' })],
+      [tx({ type: 'transfer', amount: 50000, fromAccountId: 'courant', toAccountId: 'av', date: '2026-09-05' })],
       [snapshot('2026-08-31', { av: 800000 }), snapshot('2026-09-30', { av: 860000 })],
       '2026-09-01',
       '2026-09-30',
@@ -131,7 +131,7 @@ describe('versements contre performance — le cœur du §8', () => {
     // Versé 700 €, le solde ne monte que de 600 € : 100 € perdus.
     const split = splitContributionAndPerformance(
       ['av'],
-      [tx({ type: 'transfer', amount: 70000, fromAccountId: 'cic', toAccountId: 'av', date: '2026-09-05' })],
+      [tx({ type: 'transfer', amount: 70000, fromAccountId: 'courant', toAccountId: 'av', date: '2026-09-05' })],
       [snapshot('2026-08-31', { av: 800000 }), snapshot('2026-09-30', { av: 860000 })],
       '2026-09-01',
       '2026-09-30',
@@ -147,7 +147,7 @@ describe('versements contre performance — le cœur du §8', () => {
     // à constater, et prétendre le contraire serait inventer un chiffre.
     const split = splitContributionAndPerformance(
       ['av'],
-      [tx({ type: 'transfer', amount: 50000, fromAccountId: 'cic', toAccountId: 'av', date: '2026-09-05' })],
+      [tx({ type: 'transfer', amount: 50000, fromAccountId: 'courant', toAccountId: 'av', date: '2026-09-05' })],
       [],
       '2026-09-01',
       '2026-09-30',
@@ -163,7 +163,7 @@ describe('versements contre performance — le cœur du §8', () => {
     // performance afficherait une perte fictive.
     const split = splitContributionAndPerformance(
       ['av'],
-      [tx({ type: 'transfer', amount: 50000, fromAccountId: 'cic', toAccountId: 'av', date: '2026-09-01' })],
+      [tx({ type: 'transfer', amount: 50000, fromAccountId: 'courant', toAccountId: 'av', date: '2026-09-01' })],
       [],
       '2026-09-01',
       '2026-09-30',
@@ -181,7 +181,7 @@ describe('le capital qui préexiste ne doit jamais passer pour un gain', () => {
     snapshot('2026-09-30', { av: 860000 }),
   ]
   const transactions = [
-    tx({ type: 'transfer', amount: 70000, fromAccountId: 'cic', toAccountId: 'av', date: '2026-09-05' }),
+    tx({ type: 'transfer', amount: 70000, fromAccountId: 'courant', toAccountId: 'av', date: '2026-09-05' }),
   ]
 
   it('ne compte pas les 8 000 € préexistants comme une performance', () => {
@@ -216,7 +216,7 @@ describe('le capital qui préexiste ne doit jamais passer pour un gain', () => {
     const split = splitContributionAndPerformance(
       ['av'],
       [
-        tx({ type: 'transfer', amount: 50000, fromAccountId: 'cic', toAccountId: 'av', date: '2026-03-01' }),
+        tx({ type: 'transfer', amount: 50000, fromAccountId: 'courant', toAccountId: 'av', date: '2026-03-01' }),
         ...transactions,
       ],
       snapshots,
@@ -255,8 +255,8 @@ describe('le capital qui préexiste ne doit jamais passer pour un gain', () => {
 describe('buildYearlySummaries', () => {
   it('donne un bilan par année', () => {
     const transactions = [
-      tx({ type: 'transfer', amount: 100000, fromAccountId: 'cic', toAccountId: 'av', date: '2025-06-01' }),
-      tx({ type: 'transfer', amount: 200000, fromAccountId: 'cic', toAccountId: 'av', date: '2026-06-01' }),
+      tx({ type: 'transfer', amount: 100000, fromAccountId: 'courant', toAccountId: 'av', date: '2025-06-01' }),
+      tx({ type: 'transfer', amount: 200000, fromAccountId: 'courant', toAccountId: 'av', date: '2026-06-01' }),
     ]
 
     const summaries = buildYearlySummaries([2025, 2026], ['av'], ['av'], transactions, [])
@@ -269,13 +269,13 @@ describe('buildYearlySummaries', () => {
     // du compte courant annulerait le crédit du LEP, et l'effort d'épargne
     // afficherait zéro. D'où deux ensembles de comptes distincts.
     const transactions = [
-      tx({ type: 'transfer', amount: 100000, fromAccountId: 'cic', toAccountId: 'lep', date: '2026-06-01' }),
+      tx({ type: 'transfer', amount: 100000, fromAccountId: 'courant', toAccountId: 'lep', date: '2026-06-01' }),
     ]
 
     expect(buildYearlySummaries([2026], ['lep', 'av'], ['av'], transactions, [])[0].contributions).toBe(
       100000,
     )
-    expect(buildYearlySummaries([2026], ['cic', 'lep'], ['av'], transactions, [])[0].contributions).toBe(
+    expect(buildYearlySummaries([2026], ['courant', 'lep'], ['av'], transactions, [])[0].contributions).toBe(
       0,
     )
   })

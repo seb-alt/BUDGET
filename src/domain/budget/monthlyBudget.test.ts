@@ -22,7 +22,7 @@ const settings = (): Settings => ({
   lepAccountId: 'lep',
   peaAccountId: 'pea',
   assuranceVieAccountId: 'av',
-  defaultAccountId: 'cic',
+  defaultAccountId: 'courant',
   studentLoan: {
     initialAmount: 3800000,
     monthlyPayment: 35000,

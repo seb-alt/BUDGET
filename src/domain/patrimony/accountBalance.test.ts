@@ -34,10 +34,10 @@ const snapshot = (
 describe('sans relevé manuel', () => {
   it('part de zéro et cumule les opérations', () => {
     const balance = computeAccountBalance(
-      'cic',
+      'courant',
       [
-        tx({ type: 'income', amount: 200000, accountId: 'cic' }),
-        tx({ type: 'expense', amount: 2450, accountId: 'cic' }),
+        tx({ type: 'income', amount: 200000, accountId: 'courant' }),
+        tx({ type: 'expense', amount: 2450, accountId: 'courant' }),
       ],
       [],
     )
@@ -53,11 +53,11 @@ describe('sans relevé manuel', () => {
 
 describe('sens des mouvements', () => {
   const transactions = [
-    tx({ type: 'transfer', amount: 30000, fromAccountId: 'cic', toAccountId: 'lep' }),
+    tx({ type: 'transfer', amount: 30000, fromAccountId: 'courant', toAccountId: 'lep' }),
   ]
 
   it('un transfert débite le compte de départ', () => {
-    expect(computeAccountBalance('cic', transactions, []).balance).toBe(-30000)
+    expect(computeAccountBalance('courant', transactions, []).balance).toBe(-30000)
   })
 
   it('et crédite le compte d’arrivée', () => {
@@ -70,11 +70,11 @@ describe('sens des mouvements', () => {
 
   it('une dépense débite, une entrée crédite', () => {
     expect(
-      computeAccountBalance('cic', [tx({ type: 'expense', amount: 5000, accountId: 'cic' })], [])
+      computeAccountBalance('courant', [tx({ type: 'expense', amount: 5000, accountId: 'courant' })], [])
         .balance,
     ).toBe(-5000)
     expect(
-      computeAccountBalance('cic', [tx({ type: 'income', amount: 5000, accountId: 'cic' })], [])
+      computeAccountBalance('courant', [tx({ type: 'income', amount: 5000, accountId: 'courant' })], [])
         .balance,
     ).toBe(5000)
   })
@@ -82,13 +82,13 @@ describe('sens des mouvements', () => {
 
 describe('avec relevé manuel', () => {
   const transactions = [
-    tx({ type: 'expense', amount: 10000, accountId: 'cic', date: '2026-08-20' }),
-    tx({ type: 'expense', amount: 2000, accountId: 'cic', date: '2026-09-01' }),
-    tx({ type: 'expense', amount: 3000, accountId: 'cic', date: '2026-09-05' }),
+    tx({ type: 'expense', amount: 10000, accountId: 'courant', date: '2026-08-20' }),
+    tx({ type: 'expense', amount: 2000, accountId: 'courant', date: '2026-09-01' }),
+    tx({ type: 'expense', amount: 3000, accountId: 'courant', date: '2026-09-05' }),
   ]
 
   it('repart du relevé et ignore ce qui le précède', () => {
-    const balance = computeAccountBalance('cic', transactions, [snapshot('2026-09-01', { cic: 150000 })])
+    const balance = computeAccountBalance('courant', transactions, [snapshot('2026-09-01', { courant: 150000 })])
 
     // 1 500 € au 1er septembre, moins les 30 € du 5 septembre.
     expect(balance.balance).toBe(147000)
@@ -97,29 +97,29 @@ describe('avec relevé manuel', () => {
 
   it('ne recompte pas les opérations du JOUR du relevé', () => {
     // Le solde saisi fait foi pour cette date : les 20 € du 1er sont dedans.
-    const balance = computeAccountBalance('cic', transactions, [snapshot('2026-09-01', { cic: 150000 })])
+    const balance = computeAccountBalance('courant', transactions, [snapshot('2026-09-01', { courant: 150000 })])
     expect(balance.balance).not.toBe(145000)
   })
 
   it('le relevé le plus récent l’emporte', () => {
-    const balance = computeAccountBalance('cic', transactions, [
-      snapshot('2026-08-01', { cic: 500000 }),
-      snapshot('2026-09-01', { cic: 150000 }),
+    const balance = computeAccountBalance('courant', transactions, [
+      snapshot('2026-08-01', { courant: 500000 }),
+      snapshot('2026-09-01', { courant: 150000 }),
     ])
     expect(balance.balance).toBe(147000)
   })
 
   it('un relevé partiel ne recale que les comptes qu’il cite', () => {
     const balances = computeAccountBalances(
-      ['cic', 'lep'],
+      ['courant', 'lep'],
       [
-        tx({ type: 'transfer', amount: 30000, fromAccountId: 'cic', toAccountId: 'lep', date: '2026-09-05' }),
+        tx({ type: 'transfer', amount: 30000, fromAccountId: 'courant', toAccountId: 'lep', date: '2026-09-05' }),
       ],
-      // Le relevé ne parle que du CIC : le LEP reste calculé depuis zéro.
-      [snapshot('2026-09-01', { cic: 150000 })],
+      // Le relevé ne parle que du compte courant : le LEP reste calculé depuis zéro.
+      [snapshot('2026-09-01', { courant: 150000 })],
     )
 
-    expect(balances.get('cic')?.balance).toBe(120000)
+    expect(balances.get('courant')?.balance).toBe(120000)
     expect(balances.get('lep')?.balance).toBe(30000)
     expect(balances.get('lep')?.since).toBeUndefined()
   })
@@ -128,42 +128,42 @@ describe('avec relevé manuel', () => {
 describe('plusieurs comptes d’un coup', () => {
   it('renvoie un solde par compte demandé', () => {
     const balances = computeAccountBalances(
-      ['cic', 'lep', 'pea'],
-      [tx({ type: 'transfer', amount: 30000, fromAccountId: 'cic', toAccountId: 'lep' })],
+      ['courant', 'lep', 'pea'],
+      [tx({ type: 'transfer', amount: 30000, fromAccountId: 'courant', toAccountId: 'lep' })],
       [],
     )
 
-    expect([...balances.keys()]).toEqual(['cic', 'lep', 'pea'])
+    expect([...balances.keys()]).toEqual(['courant', 'lep', 'pea'])
     expect(balances.get('pea')?.balance).toBe(0)
   })
 })
 
 describe('solde à une date passée', () => {
   const transactions = [
-    tx({ type: 'income', amount: 100000, accountId: 'cic', date: '2026-07-10' }),
-    tx({ type: 'expense', amount: 20000, accountId: 'cic', date: '2026-08-10' }),
-    tx({ type: 'expense', amount: 30000, accountId: 'cic', date: '2026-09-10' }),
+    tx({ type: 'income', amount: 100000, accountId: 'courant', date: '2026-07-10' }),
+    tx({ type: 'expense', amount: 20000, accountId: 'courant', date: '2026-08-10' }),
+    tx({ type: 'expense', amount: 30000, accountId: 'courant', date: '2026-09-10' }),
   ]
 
   it('ignore les opérations postérieures à la date demandée', () => {
-    expect(computeAccountBalance('cic', transactions, [], '2026-08-31').balance).toBe(80000)
-    expect(computeAccountBalance('cic', transactions, [], '2026-07-31').balance).toBe(100000)
+    expect(computeAccountBalance('courant', transactions, [], '2026-08-31').balance).toBe(80000)
+    expect(computeAccountBalance('courant', transactions, [], '2026-07-31').balance).toBe(100000)
   })
 
   it('inclut les opérations du jour demandé', () => {
-    expect(computeAccountBalance('cic', transactions, [], '2026-09-10').balance).toBe(50000)
+    expect(computeAccountBalance('courant', transactions, [], '2026-09-10').balance).toBe(50000)
   })
 
   it('vaut zéro avant la première opération', () => {
-    expect(computeAccountBalance('cic', transactions, [], '2026-06-30').balance).toBe(0)
+    expect(computeAccountBalance('courant', transactions, [], '2026-06-30').balance).toBe(0)
   })
 
   it('ignore un relevé POSTÉRIEUR à la date demandée', () => {
     // Un relevé de septembre ne dit rien du solde qu'on avait en juillet.
     const balance = computeAccountBalance(
-      'cic',
+      'courant',
       transactions,
-      [snapshot('2026-09-01', { cic: 999999 })],
+      [snapshot('2026-09-01', { courant: 999999 })],
       '2026-08-31',
     )
     expect(balance.balance).toBe(80000)
@@ -171,9 +171,9 @@ describe('solde à une date passée', () => {
 
   it('utilise le dernier relevé antérieur à la date demandée', () => {
     const balance = computeAccountBalance(
-      'cic',
+      'courant',
       transactions,
-      [snapshot('2026-08-01', { cic: 150000 })],
+      [snapshot('2026-08-01', { courant: 150000 })],
       '2026-08-31',
     )
     // 1 500 € au 1er août, moins les 200 € du 10 août.

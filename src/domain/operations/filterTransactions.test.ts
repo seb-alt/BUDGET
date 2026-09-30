@@ -18,8 +18,8 @@ import {
 const namesById = new Map([
   ['cat-shopping', 'Shopping'],
   ['cat-sorties', 'Sorties'],
-  ['cat-itaxia', 'ITAXIA'],
-  ['acc-cic', 'CIC'],
+  ['cat-salaire', 'Salaire'],
+  ['acc-courant', 'Compte courant'],
   ['acc-lep', 'LEP'],
 ])
 
@@ -92,9 +92,9 @@ describe('filtre de période', () => {
 
 describe('filtre de type', () => {
   const transactions = [
-    tx({ type: 'expense', amount: 100, categoryId: 'cat-shopping', accountId: 'acc-cic' }),
-    tx({ type: 'income', amount: 200, categoryId: 'cat-itaxia', accountId: 'acc-cic' }),
-    tx({ type: 'transfer', amount: 300, fromAccountId: 'acc-cic', toAccountId: 'acc-lep' }),
+    tx({ type: 'expense', amount: 100, categoryId: 'cat-shopping', accountId: 'acc-courant' }),
+    tx({ type: 'income', amount: 200, categoryId: 'cat-salaire', accountId: 'acc-courant' }),
+    tx({ type: 'transfer', amount: 300, fromAccountId: 'acc-courant', toAccountId: 'acc-lep' }),
   ]
 
   it('ne garde que les dépenses', () => {
@@ -110,13 +110,13 @@ describe('filtre de type', () => {
 
 describe('filtre de compte', () => {
   const transactions = [
-    tx({ type: 'expense', amount: 100, categoryId: 'cat-shopping', accountId: 'acc-cic' }),
-    tx({ type: 'transfer', amount: 300, fromAccountId: 'acc-cic', toAccountId: 'acc-lep' }),
+    tx({ type: 'expense', amount: 100, categoryId: 'cat-shopping', accountId: 'acc-courant' }),
+    tx({ type: 'transfer', amount: 300, fromAccountId: 'acc-courant', toAccountId: 'acc-lep' }),
     tx({ type: 'expense', amount: 400, categoryId: 'cat-shopping', accountId: 'acc-lep' }),
   ]
 
   it('un transfert est retenu par son compte de DÉPART comme par son compte d’arrivée', () => {
-    expect(filterTransactions(transactions, all({ accountId: 'acc-cic' }), context).map((t) => t.amount))
+    expect(filterTransactions(transactions, all({ accountId: 'acc-courant' }), context).map((t) => t.amount))
       .toEqual([300, 100])
     expect(filterTransactions(transactions, all({ accountId: 'acc-lep' }), context).map((t) => t.amount))
       .toEqual([400, 300])
@@ -125,9 +125,9 @@ describe('filtre de compte', () => {
 
 describe('recherche', () => {
   const transactions = [
-    tx({ type: 'expense', amount: 6900, categoryId: 'cat-shopping', accountId: 'acc-cic', label: 'Décathlon' }),
-    tx({ type: 'expense', amount: 4200, categoryId: 'cat-sorties', accountId: 'acc-cic' }),
-    tx({ type: 'transfer', amount: 30000, fromAccountId: 'acc-cic', toAccountId: 'acc-lep' }),
+    tx({ type: 'expense', amount: 6900, categoryId: 'cat-shopping', accountId: 'acc-courant', label: 'Décathlon' }),
+    tx({ type: 'expense', amount: 4200, categoryId: 'cat-sorties', accountId: 'acc-courant' }),
+    tx({ type: 'transfer', amount: 30000, fromAccountId: 'acc-courant', toAccountId: 'acc-lep' }),
   ]
 
   it('trouve par libellé, sans tenir compte de la casse ni des accents tapés', () => {
@@ -181,7 +181,7 @@ describe('countActiveFilters', () => {
     expect(countActiveFilters({ ...EMPTY_FILTERS, type: 'expense' })).toBe(1)
     expect(countActiveFilters({ ...EMPTY_FILTERS, type: 'expense', period: 'all' })).toBe(2)
     expect(
-      countActiveFilters({ ...EMPTY_FILTERS, type: 'expense', accountId: 'acc-cic', categoryId: 'cat-shopping' }),
+      countActiveFilters({ ...EMPTY_FILTERS, type: 'expense', accountId: 'acc-courant', categoryId: 'cat-shopping' }),
     ).toBe(3)
   })
 

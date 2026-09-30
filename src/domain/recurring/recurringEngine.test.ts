@@ -24,7 +24,7 @@ function rule(partial: Partial<RecurringRule> = {}): RecurringRule {
     type: 'expense',
     amount: 35000,
     categoryId: 'cat-pret-etudiant',
-    accountId: 'acc-cic',
+    accountId: 'acc-courant',
     frequency: 'monthly',
     dayOfMonth: 5,
     startDate: '2026-01-05',

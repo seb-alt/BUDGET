@@ -31,6 +31,17 @@
  */
 
 import Dexie, { type Table } from 'dexie'
+import {
+  V5_LABELS,
+  V5_RENAMES,
+  renameInCategory,
+  renameInMicroSettings,
+  renameInMonthlyBudget,
+  renameInRecurringRule,
+  renameInSettings,
+  renameInSnapshot,
+  renameInTransaction,
+} from '../domain/migration/renameIds'
 import type {
   Account,
   Category,
@@ -138,6 +149,68 @@ export class BudgetDatabase extends Dexie {
       const existing = await microSettings.get(1)
       if (existing !== undefined && existing.urssafCategoryId === undefined) {
         await microSettings.update(1, { urssafCategoryId: 'cat-micro-urssaf' })
+      }
+    })
+
+    // --- VERSION 5 : des identifiants neutres.
+    //
+    // Les identifiants d'origine portaient des noms personnels — un employeur,
+    // une banque. Ils sont devenus neutres pour que le code puisse être publié
+    // sans rien révéler.
+    //
+    // Un identifiant n'est pas qu'une étiquette : il est recopié dans les
+    // opérations, les budgets figés, les relevés de soldes, les règles
+    // récurrentes et les réglages. Le changer à un seul endroit produirait des
+    // doublons — l'ancienne catégorie resterait avec toutes ses opérations, et
+    // la nouvelle apparaîtrait vide à côté.
+    //
+    // La logique du renommage vit dans domain/migration/renameIds.ts, testée
+    // sans base de données, parce qu'elle sert AUSSI à la restauration d'une
+    // sauvegarde ancienne — qui n'écrit que des lignes et ne rejoue aucune
+    // migration.
+    this.version(5).upgrade(async (transaction) => {
+      const renames = V5_RENAMES
+
+      // Les tables dont seul le CONTENU change : une simple réécriture.
+      const rewrite = async <T extends { id: string | number }>(
+        name: string,
+        fn: (row: T, renames: typeof V5_RENAMES) => T,
+      ) => {
+        const table = transaction.table<T>(name)
+        const rows = await table.toArray()
+        const next = rows.map((row) => fn(row, renames))
+        await table.bulkPut(next)
+      }
+
+      await rewrite<Transaction>('transactions', renameInTransaction)
+      await rewrite<RecurringRule>('recurringRules', renameInRecurringRule)
+      await rewrite<PatrimonySnapshot>('patrimonySnapshots', renameInSnapshot)
+      await rewrite<MonthlyBudget>('monthlyBudgets', renameInMonthlyBudget)
+      await rewrite<Settings>('settings', renameInSettings)
+      await rewrite<MicroSettings>('microSettings', renameInMicroSettings)
+
+      // Les catégories et les comptes, eux, changent de CLÉ. Une clé ne se
+      // modifie pas sur place : on écrit la nouvelle ligne, puis on efface
+      // l'ancienne. Dans cet ordre — l'inverse perdrait la ligne si quelque
+      // chose échouait entre les deux.
+      const categories = transaction.table<Category>('categories')
+      for (const category of await categories.toArray()) {
+        const next = renameInCategory(category, renames)
+        if (next.id === category.id) {
+          // Pas de changement de clé, mais peut-être des comptes d'épargne à suivre.
+          if (JSON.stringify(next) !== JSON.stringify(category)) await categories.put(next)
+          continue
+        }
+        await categories.put(next)
+        await categories.delete(category.id)
+      }
+
+      const accounts = transaction.table<Account>('accounts')
+      for (const account of await accounts.toArray()) {
+        const nextId = renames[account.id]
+        if (nextId === undefined) continue
+        await accounts.put({ ...account, id: nextId, name: V5_LABELS[nextId] ?? account.name })
+        await accounts.delete(account.id)
       }
     })
   }

@@ -22,7 +22,7 @@ function invoice(partial: Partial<MicroInvoice> = {}): MicroInvoice {
   return {
     id: `f${sequence}`,
     number: `F2026-${String(sequence).padStart(3, '0')}`,
-    clientId: 'esail',
+    clientId: 'client-1',
     issueDate: '2026-09-01',
     amount: 77000,
     dueDate: '2026-10-01',

@@ -27,11 +27,12 @@ import {
   type BackupTable,
 } from '../domain/backup/backupFile'
 import { csvAmount, toCsv, type CsvColumn } from '../domain/backup/csv'
+import { V5_RENAMES, renameInBackupData } from '../domain/migration/renameIds'
 import { db } from './db'
 import type { MicroInvoice, PatrimonySnapshot, Settings, Transaction } from './types'
 
 /** Version du schéma de la base. Doit suivre le dernier `.version(n)` de db.ts. */
-export const SCHEMA_VERSION = 4
+export const SCHEMA_VERSION = 5
 
 /* ------------------------------------------------------------------ */
 /* Export complet                                                      */
@@ -73,8 +74,26 @@ export interface RestoreReport {
  * Remplace TOUTE la base par le contenu d'une sauvegarde.
  * Le fichier doit avoir été validé au préalable (validateBackup).
  */
+/**
+ * Met le contenu d'une sauvegarde au format d'aujourd'hui.
+ *
+ * LE PIÈGE : restaurer n'écrit que des lignes. Cela ne rejoue AUCUNE migration
+ * — Dexie ne les exécute qu'au changement de version de la base, pas à chaque
+ * écriture. Sans ce passage, une sauvegarde de septembre réintroduirait les
+ * anciens identifiants dans une base déjà migrée, et l'application se
+ * retrouverait avec des catégories en double.
+ *
+ * La transformation est la même que celle de la migration, et elle vient du
+ * même fichier : impossible que les deux chemins divergent.
+ */
+function upgradeBackupData(backup: BackupFile): Record<string, unknown[]> {
+  if (backup.version >= 5) return backup.data
+  return renameInBackupData(backup.data, V5_RENAMES)
+}
+
 export async function restoreBackup(backup: BackupFile): Promise<RestoreReport> {
   const tables = BACKUP_TABLES.map((name) => db.table(name))
+  const data = upgradeBackupData(backup)
 
   return db.transaction('rw', tables, async () => {
     const restored: Record<string, number> = {}
@@ -84,7 +103,7 @@ export async function restoreBackup(backup: BackupFile): Promise<RestoreReport> 
       // On vide avant d'écrire : sans ça, une ligne supprimée depuis la
       // sauvegarde survivrait à la restauration.
       await table.clear()
-      const rows = backup.data[name]
+      const rows = data[name] ?? []
       if (rows.length > 0) await table.bulkAdd(rows)
       restored[name] = rows.length
     }
@@ -118,23 +137,16 @@ const INVOICE_STATUS_LABELS: Record<MicroInvoice['status'], string> = {
 }
 
 export async function buildCsvFiles(): Promise<CsvFile[]> {
-  const [
-    transactions,
-    categories,
-    accounts,
-    monthlyBudgets,
-    snapshots,
-    invoices,
-    clients,
-  ] = await Promise.all([
-    db.transactions.orderBy('date').toArray(),
-    db.categories.toArray(),
-    db.accounts.toArray(),
-    db.monthlyBudgets.orderBy('month').toArray(),
-    db.patrimonySnapshots.orderBy('date').toArray(),
-    db.microInvoices.toArray(),
-    db.microClients.toArray(),
-  ])
+  const [transactions, categories, accounts, monthlyBudgets, snapshots, invoices, clients] =
+    await Promise.all([
+      db.transactions.orderBy('date').toArray(),
+      db.categories.toArray(),
+      db.accounts.toArray(),
+      db.monthlyBudgets.orderBy('month').toArray(),
+      db.patrimonySnapshots.orderBy('date').toArray(),
+      db.microInvoices.toArray(),
+      db.microClients.toArray(),
+    ])
 
   // Les fichiers portent des NOMS, pas des identifiants : un CSV se lit à
   // l'œil, « cat-shopping » n'y apprendrait rien à personne.
@@ -200,7 +212,8 @@ export async function buildCsvFiles(): Promise<CsvFile[]> {
         { header: 'Payée le', value: (invoice) => invoice.paymentDate ?? '' },
         {
           header: 'Encaissé',
-          value: (invoice) => (invoice.paidAmount === undefined ? '' : csvAmount(invoice.paidAmount)),
+          value: (invoice) =>
+            invoice.paidAmount === undefined ? '' : csvAmount(invoice.paidAmount),
         },
       ]),
     },

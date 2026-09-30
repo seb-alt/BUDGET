@@ -51,9 +51,9 @@ describe('moveInOrder', () => {
 
 describe('suppressions protégées', () => {
   const transactions = [
-    { id: '1', type: 'expense', amount: 100, date: '2026-09-01', categoryId: 'shopping', accountId: 'cic', createdAt: '', updatedAt: '' },
-    { id: '2', type: 'expense', amount: 200, date: '2026-09-02', categoryId: 'shopping', accountId: 'cic', createdAt: '', updatedAt: '' },
-    { id: '3', type: 'transfer', amount: 300, date: '2026-09-03', fromAccountId: 'cic', toAccountId: 'lep', createdAt: '', updatedAt: '' },
+    { id: '1', type: 'expense', amount: 100, date: '2026-09-01', categoryId: 'shopping', accountId: 'courant', createdAt: '', updatedAt: '' },
+    { id: '2', type: 'expense', amount: 200, date: '2026-09-02', categoryId: 'shopping', accountId: 'courant', createdAt: '', updatedAt: '' },
+    { id: '3', type: 'transfer', amount: 300, date: '2026-09-03', fromAccountId: 'courant', toAccountId: 'lep', createdAt: '', updatedAt: '' },
   ] satisfies Transaction[]
 
   it('compte les opérations d’une catégorie', () => {
@@ -62,7 +62,7 @@ describe('suppressions protégées', () => {
   })
 
   it('compte un transfert pour ses DEUX comptes', () => {
-    expect(countAccountUses('cic', transactions)).toBe(3)
+    expect(countAccountUses('courant', transactions)).toBe(3)
     expect(countAccountUses('lep', transactions)).toBe(1)
     expect(countAccountUses('pea', transactions)).toBe(0)
   })

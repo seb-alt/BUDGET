@@ -27,7 +27,7 @@ export type IsoTimestamp = string
 /* ------------------------------------------------------------------ */
 
 export type AccountKind =
-  | 'checking' /* compte courant  : CIC */
+  | 'checking' /* compte courant           */
   | 'savings' /* épargne         : LEP */
   | 'investment' /* placement       : Assurance-vie, PEA */
   | 'micro' /* micro-entreprise */
@@ -290,7 +290,7 @@ export interface MicroInvoice {
 }
 
 /**
- * Prévisionnel d'heures par client et par mois (planning ESAIL du cahier des charges §9).
+ * Prévisionnel d'heures par client et par mois (cahier des charges §9).
  * Alimente la comparaison Prévu / Facturé / Encaissé.
  */
 export interface MicroForecast {
@@ -342,7 +342,7 @@ export interface Settings {
   lepAccountId: string
   peaAccountId: string
   assuranceVieAccountId: string
-  /** Compte proposé par défaut à la saisie d'une opération (CIC). */
+  /** Compte proposé par défaut à la saisie d'une opération. */
   defaultAccountId: string
 
   studentLoan: StudentLoan

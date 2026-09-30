@@ -9,7 +9,7 @@
  * ---------------------------------------------------------------------------
  * LES TROIS RÈGLES APPLIQUÉES ICI
  * ---------------------------------------------------------------------------
- * 1. Un TRANSFERT n'est JAMAIS une dépense. Déplacer 300 € du CIC vers le LEP
+ * 1. Un TRANSFERT n'est JAMAIS une dépense. Déplacer 300 € du compte courant vers le LEP
  *    ne t'appauvrit pas : ça ne doit pas apparaître dans « Sorties du mois ».
  *
  * 2. L'ÉPARGNE du mois, c'est l'argent qui ENTRE dans la poche épargne, pas

@@ -130,7 +130,7 @@ Trois types :
 | --- | --- | --- |
 | **Dépense** | de l'argent qui sort | courses, essence, restaurant |
 | **Entrée** | de l'argent qui rentre | salaire, remboursement |
-| **Transfert** | de l'argent qui change de poche | CIC → PEA |
+| **Transfert** | de l'argent qui change de poche | compte courant → PEA |
 
 **Un transfert n'est pas une dépense.** Virer 200 € sur ton PEA ne t'appauvrit
 pas — c'est pourquoi l'application ne le compte jamais dans tes sorties. C'est
@@ -207,12 +207,24 @@ Le soleil ou la lune bascule entre clair et sombre. L'engrenage ouvre les
 | **Apparence** | Automatique (suit ton téléphone), Clair ou Sombre |
 | **Budget mensuel** | le montant alloué à chaque catégorie |
 | **Épargne et prêt** | assurance-vie mensuelle, plafond du LEP |
-| **Catégories** | créer, renommer, réordonner, désactiver |
+| **Catégories** | créer, renommer, réordonner, désactiver, supprimer |
 | **Comptes** | tes comptes bancaires et placements |
 | **Opérations récurrentes** | loyer, abonnements, prêt étudiant |
 | **Micro-entreprise** | taux URSSAF, délai de paiement, numérotation |
 | **Rapport mensuel** | **les exports Excel et PDF** |
 | **Sauvegarde** | **la sauvegarde complète** |
+
+### Faire évoluer tes catégories
+
+Tes besoins changeront. **Paramètres → Catégories** permet d'en ajouter, d'en
+renommer, de les réordonner et d'en supprimer. Une nouvelle catégorie apparaît
+aussitôt dans **Budget mensuel** avec son champ de montant, puis dans la saisie
+et sur la carte de son groupe.
+
+Une catégorie **déjà utilisée par des opérations ne peut pas être supprimée** —
+l'application te proposera de la **désactiver** à la place. C'est le bon geste :
+elle disparaît de la saisie, mais tes anciennes opérations gardent leur
+libellé et ton historique reste vrai.
 
 ### Les opérations récurrentes, en deux mots
 
