@@ -90,7 +90,7 @@
 .ui-sheet-backdrop {
   position: fixed;
   inset: 0;
-  background: rgb(15 23 42 / 0.45);
+  background: var(--backdrop);
   display: flex;
   align-items: flex-end;
   justify-content: center;

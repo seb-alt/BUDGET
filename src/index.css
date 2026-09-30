@@ -1,39 +1,100 @@
 /**
  * src/index.css
  *
- * Réglages globaux et « jetons de design ».
+ * Réglages globaux et « jetons de design » (§13).
  *
  * Toutes les couleurs, espacements et rayons de l'application sont définis ici
- * sous forme de variables. Aucun composant n'écrit une couleur en dur. Le jour
- * où on définira le vrai design (§13), il suffira de changer ce fichier : toute
- * l'application suivra, y compris le mode sombre.
+ * sous forme de variables. Aucun composant n'écrit une couleur en dur — c'est
+ * ce qui permet de changer tout l'aspect de l'application depuis un seul
+ * fichier, mode sombre compris.
  *
- * Pour l'instant : neutre et propre, priorité au fonctionnel.
+ * ---------------------------------------------------------------------------
+ * LA PALETTE
+ * ---------------------------------------------------------------------------
+ * Trois familles, et rien d'autre :
+ *
+ *   - un GRIS CLAIR pour le fond,
+ *   - un ANTHRACITE pour le texte,
+ *   - un ORANGE pour ce qui doit ressortir.
+ *
+ * En mode sombre, les deux premiers s'échangent : fond anthracite, texte gris
+ * clair. L'orange, lui, ne change presque pas — c'est le repère de l'œil.
+ *
+ * L'orange est rare exprès. Une couleur d'accent n'attire l'œil que si elle
+ * est la seule à le faire : dès qu'elle est partout, elle ne dit plus rien.
+ * Concrètement, elle est réservée à ce sur quoi on peut AGIR (le bouton
+ * principal, l'onglet actif, la sélection) et au chiffre du moment.
+ *
+ * Le rouge et le vert restent définis, mais ils ne servent plus à colorer les
+ * montants ordinaires : une dépense normale n'est pas une alerte. Ils sont
+ * gardés pour ce qui signale vraiment quelque chose — un budget dépassé, un
+ * solde négatif, une suppression.
  */
 
+/* --- La police -----------------------------------------------------------
+   Inter, mais hébergée DANS l'application, pas chargée depuis Google.
+   Trois raisons : elle doit fonctionner hors connexion (§1), tes données et ta
+   navigation n'ont rien à faire chez un tiers (§2), et une police servie de
+   l'extérieur peut disparaître ou changer un jour.
+
+   Le fichier est la version « variable » : une seule graisse continue de 100
+   à 900, donc un seul fichier de 48 Ko pour tous les niveaux de gras. Seul le
+   sous-ensemble latin est embarqué — il couvre l'intégralité du français,
+   accents, œ et € compris.
+
+   Fichier repris de @fontsource-variable/inter ; licence dans
+   src/assets/inter-LICENSE.txt (SIL Open Font License). */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  /* `swap` : le texte s'affiche tout de suite dans la police système, puis
+     bascule sur Inter dès qu'elle est chargée. Sans ça, le premier affichage
+     resterait blanc quelques dixièmes de seconde. */
+  font-display: swap;
+  src: url('./assets/inter-latin-variable.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
-  /* Surfaces et texte */
-  --bg: #f5f6f8;
+  /* Surfaces et texte — gris clair et anthracite, très légèrement chauds pour
+     s'accorder à l'orange. Un gris parfaitement neutre le ferait virer au
+     rose. */
+  --bg: #f4f3f1;
   --surface: #ffffff;
   --surface-raised: #ffffff;
-  --surface-sunken: #eef0f3;
-  --border: #e2e5ea;
-  --border-soft: #eef0f3;
-  --text: #15181d;
-  --text-muted: #6a7280;
-  --text-faint: #9aa1ab;
+  --surface-sunken: #ebe9e6;
+  --border: #e3e1dd;
+  --border-soft: #eeece9;
+  --text: #1b1b1a;
+  --text-muted: #6b6a67;
+  --text-faint: #74736c;
 
-  /* Couleurs de sens. Le rouge/vert n'est jamais la seule information :
-     un signe + ou - accompagne toujours le montant, pour rester lisible
-     en cas de daltonisme. */
-  --accent: #3a63d8;
-  --accent-soft: #e8edfc;
-  --accent-text: #ffffff;
-  --positive: #16794a;
-  --positive-soft: #e3f4ec;
-  --negative: #b32d2d;
-  --negative-soft: #fbeaea;
-  --neutral-soft: #eef0f3;
+  /* L'accent. Deux valeurs, parce qu'un fond et un texte n'ont pas les mêmes
+     exigences de lisibilité :
+       --accent     : les aplats (bouton principal, onglet actif, sélection) ;
+       --accent-ink : l'orange quand il sert de TEXTE sur fond clair. L'orange
+                      vif n'y passerait pas le seuil de contraste, il est donc
+                      assombri.
+     Sur l'aplat orange, l'étiquette est anthracite et non blanche : le blanc
+     sur cet orange descend à 3,7 pour 1, sous le seuil exigé pour du texte
+     courant. L'anthracite tient 4,7. */
+  --accent: #dd5f1e;
+  --accent-ink: #b8480f;
+  --accent-soft: #fbeade;
+  --accent-text: #1b1b1a;
+
+  /* Couleurs de sens, volontairement sourdes. Elles ne sont jamais la seule
+     information : un signe + ou −, ou un mot, accompagne toujours le montant,
+     pour rester lisible en cas de daltonisme. */
+  --positive: #1a6f4b;
+  --positive-soft: #e7f1ec;
+  --negative: #ab2b3f;
+  --negative-soft: #f9eaec;
+  --negative-text: #ffffff;
+  --neutral-soft: #ebe9e6;
 
   /* Espacements */
   --space-1: 0.25rem;
@@ -43,32 +104,47 @@
   --space-5: 1.5rem;
   --space-6: 2rem;
 
-  /* Rayons et ombres */
+  /* Rayons et ombres. Les ombres sont presque invisibles : sur un fond gris
+     clair, un simple filet suffit à décoller une carte, et c'est ce qui donne
+     l'aspect posé plutôt que l'effet « boîtes qui flottent ». */
   --radius-sm: 0.5rem;
   --radius: 0.875rem;
   --radius-lg: 1.25rem;
-  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
-  --shadow-raised: 0 4px 12px rgb(15 23 42 / 0.12);
+  --shadow-card: 0 1px 2px rgb(27 27 26 / 0.04);
+  --shadow-raised: 0 8px 24px rgb(27 27 26 / 0.12);
+  --backdrop: rgb(27 27 26 / 0.4);
 
   /* Hauteur de la barre de navigation, réutilisée pour les marges du bas. */
   --nav-height: 4.25rem;
 
   /* --- Couleurs des graphiques ----------------------------------------
      Une couleur par groupe budgétaire, la MÊME dans tous les graphiques :
-     le bleu veut toujours dire « charges fixes », partout.
-     Ces trois teintes ont été vérifiées par script : elles restent
-     distinguables pour les principales formes de daltonisme, et lisibles
-     sur le fond clair comme sur le fond sombre. Ne pas les changer sans
-     revalider. */
-  --chart-1: #2a78d6; /* charges fixes */
-  --chart-2: #eb6834; /* épargne & investissement */
-  --chart-3: #1baf7a; /* loisirs */
-  --chart-4: #eda100; /* 4e série : quatrième compte du patrimoine */
-  /* Couleur d'alerte, réservée au dépassement. Jamais utilisée comme
-     couleur de série, pour qu'elle garde son sens. */
-  --chart-over: #d03b3b;
+     l'orange veut toujours dire « charges fixes », partout. L'orange ouvre la
+     série parce que c'est la couleur de l'application ; les trois suivantes
+     s'en écartent le plus possible.
 
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+     Ces valeurs ne sont pas choisies à l'œil : elles sont passées au
+     validateur de la méthode dataviz, qui vérifie la bande de clarté, la
+     saturation minimale, la séparation sous protanopie et deutéranopie, et le
+     contraste sur la carte. Les quatre passent en voisines (barres groupées),
+     et les trois premières passent même toutes paires confondues — le cas de
+     l'anneau, où la première touche la dernière. Ne pas les changer sans
+     revalider. */
+  --chart-1: #dd5f1e; /* charges fixes */
+  --chart-2: #2f6fc4; /* épargne & investissement */
+  --chart-3: #0f8a6a; /* loisirs */
+  --chart-4: #8b4bb0; /* 4e série : quatrième compte du patrimoine */
+  /* Couleur d'alerte, réservée au dépassement. Jamais utilisée comme couleur
+     de série, pour qu'elle garde son sens — et choisie assez loin de l'orange
+     pour qu'un dépassement ne se confonde pas avec les charges fixes. */
+  --chart-over: #ab2b3f;
+
+  /* La police système reste en secours : si le fichier ne se charge pas, le
+     texte s'affiche quand même, dans quelque chose de proche. */
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Inter est dessinée un peu large ; le resserrer très légèrement est la
+     correction recommandée par ses auteurs. */
+  letter-spacing: -0.011em;
   line-height: 1.5;
   color: var(--text);
   background-color: var(--bg);
@@ -77,35 +153,44 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0e1116;
-    --surface: #171b21;
-    --surface-raised: #1d222a;
-    --surface-sunken: #12161b;
-    --border: #262c35;
-    --border-soft: #1f242c;
-    --text: #e9ebee;
-    --text-muted: #98a1ad;
-    --text-faint: #6d7684;
+    --bg: #141413;
+    --surface: #1c1c1b;
+    --surface-raised: #242422;
+    --surface-sunken: #101010;
+    --border: #2d2d2a;
+    --border-soft: #242422;
+    --text: #ebebe9;
+    --text-muted: #a3a29e;
+    --text-faint: #8a8981;
 
-    --accent: #7794ee;
-    --accent-soft: #1e2740;
-    --accent-text: #0e1116;
-    --positive: #4ec08a;
-    --positive-soft: #14281f;
-    --negative: #ef7d7d;
-    --negative-soft: #2c1a1a;
-    --neutral-soft: #21262e;
+    /* Sur fond sombre, le même orange éclairci passe partout : en aplat comme
+       en texte. Une seule valeur suffit donc. */
+    --accent: #f08a4e;
+    --accent-ink: #f08a4e;
+    --accent-soft: #33221a;
+    --accent-text: #141413;
 
+    --positive: #56b98a;
+    --positive-soft: #16271f;
+    --negative: #e58095;
+    --negative-soft: #2e1a1d;
+    --negative-text: #141413;
+    --neutral-soft: #242422;
+
+    /* Sur fond sombre, une ombre ne se voit pas : c'est le filet de bordure
+       qui sépare les cartes. */
     --shadow-card: none;
-    --shadow-raised: 0 4px 16px rgb(0 0 0 / 0.45);
+    --shadow-raised: 0 8px 28px rgb(0 0 0 / 0.5);
+    --backdrop: rgb(0 0 0 / 0.6);
 
     /* Mêmes teintes, redosées pour le fond sombre — pas un simple
-       éclaircissement automatique : chaque valeur a été revalidée. */
-    --chart-1: #3987e5;
-    --chart-2: #d95926;
-    --chart-3: #199e70;
-    --chart-4: #c98500;
-    --chart-over: #d03b3b;
+       éclaircissement automatique : chaque valeur a été revalidée contre la
+       carte sombre. */
+    --chart-1: #e56a2b;
+    --chart-2: #5a8de0;
+    --chart-3: #25a482;
+    --chart-4: #a273d4;
+    --chart-over: #bb3550;
   }
 }
 

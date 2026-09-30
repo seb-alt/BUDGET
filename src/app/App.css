@@ -87,7 +87,7 @@
 }
 
 .app-nav-button[aria-current='page'] {
-  color: var(--accent);
+  color: var(--accent-ink);
   font-weight: 600;
 }
 

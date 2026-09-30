@@ -221,8 +221,12 @@ export function Dashboard({
       <PendingRecurringCard />
 
       <section className="dash-indicators" aria-label="Indicateurs du mois">
-        <Indicator label="Entrées du mois" amount={summary.income} tone="positive" />
-        <Indicator label="Sorties du mois" amount={summary.expenses} tone="negative" />
+        {/* Ni vert ni rouge ici : l'étiquette dit déjà « Entrées » ou « Sorties ».
+            Peindre une dépense normale en rouge la ferait passer pour une
+            alerte. Seuls l'épargne (le chiffre du mois) et un reste négatif
+            portent une couleur. */}
+        <Indicator label="Entrées du mois" amount={summary.income} tone="neutral" />
+        <Indicator label="Sorties du mois" amount={summary.expenses} tone="neutral" />
         <Indicator label="Épargne du mois" amount={summary.savings} tone="accent" />
         <Indicator
           label="Loisirs restants"

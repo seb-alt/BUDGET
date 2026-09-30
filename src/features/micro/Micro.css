@@ -79,7 +79,7 @@
 
 .mic-indicator.is-strong .mic-indicator-value {
   font-size: 1.375rem;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .mic-caveat {
@@ -169,7 +169,7 @@
   border-radius: 999px;
   padding: var(--space-1) var(--space-3);
   font-size: 0.8125rem;
-  color: var(--accent);
+  color: var(--accent-ink);
   cursor: pointer;
 }
 
@@ -263,7 +263,7 @@
 .mic-status.is-awaiting,
 .mic-status.is-issued {
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .mic-mark-paid {
@@ -272,7 +272,7 @@
   background: transparent;
   padding: 0 0 var(--space-3);
   font-size: 0.8125rem;
-  color: var(--accent);
+  color: var(--accent-ink);
   cursor: pointer;
 }
 
@@ -465,7 +465,7 @@
 .mic-danger-actions button.is-danger {
   background: var(--negative);
   border-color: var(--negative);
-  color: #fff;
+  color: var(--negative-text);
   font-weight: 600;
 }
 

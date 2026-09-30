@@ -49,6 +49,7 @@ src/
     transactions.ts     # écriture et validation des opérations
     budgets.ts          # quel budget s'applique à quel mois
     recurring.ts        # règles récurrentes : application et confirmation
+  assets/               # la police Inter, embarquée dans l'application
   utils/                # dates, montants
   main.tsx              # point d'entrée : remplit la base puis affiche React
 ```
@@ -92,6 +93,7 @@ se met alors à jour au lieu d'être effacée.
 - [x] **Étape 7** — onglet Patrimoine
 - [x] **Étape 8** — onglet Micro-entreprise
 - [x] **Étape 10** — opérations récurrentes (§7)
+- [x] **Étape 11** — identité visuelle : police, palette, mode sombre (§13)
 - [x] **Étape 6** — sauvegarde, restauration et exports CSV
 - [x] **Étape 9** — PWA installable et hors connexion
 
@@ -357,3 +359,59 @@ Limite assumée : les règles ne s'appliquent qu'à l'ouverture de l'application
 Sans serveur, rien ne peut tourner pendant qu'elle est fermée. Rouvrir
 l'application un mois plus tard crée d'un coup toutes les échéances manquées,
 chacune à sa vraie date.
+
+### L'identité visuelle (§13)
+
+Tout tient dans `src/index.css`. Aucun composant n'écrit une couleur : ils
+utilisent des variables. Changer l'apparence de toute l'application, mode
+sombre compris, se fait donc dans ce seul fichier.
+
+**La police.** Inter, mais **embarquée dans l'application**, pas chargée depuis
+Google. Trois raisons : elle doit fonctionner hors connexion (§1), ta
+navigation n'a pas à passer chez un tiers (§2), et une police servie de
+l'extérieur peut changer ou disparaître. C'est la version « variable » : un
+seul fichier de 48 Ko couvre toutes les graisses. Seul le sous-ensemble latin
+est embarqué — il couvre l'intégralité du français, accents, œ et € compris.
+Le fichier vient de `@fontsource-variable/inter` ; sa licence est dans
+`src/assets/inter-LICENSE.txt`.
+
+**Les couleurs.** Trois familles, et rien d'autre : un gris clair, un
+anthracite, un orange. En mode sombre les deux premiers s'échangent ; l'orange
+ne bouge presque pas, c'est le repère de l'œil.
+
+L'orange est rare exprès. Une couleur d'accent n'attire l'œil que si elle est
+la seule à le faire. Elle est donc réservée à ce sur quoi on peut **agir**
+(bouton principal, onglet actif, sélection) et au chiffre du moment.
+
+Le rouge et le vert existent toujours, mais ils ne colorent plus les montants
+ordinaires : une dépense normale n'est pas une alerte, et l'étiquette « Sorties
+du mois » dit déjà de quoi il s'agit. Ils sont gardés pour ce qui signale
+vraiment quelque chose — budget dépassé, solde négatif, plus-value,
+suppression.
+
+**Deux tons d'orange, et pourquoi.** Un aplat et un texte n'ont pas les mêmes
+exigences de lisibilité. `--accent` (#dd5f1e) sert aux aplats ; `--accent-ink`
+(#b8480f), plus sombre, sert quand l'orange est du **texte** sur fond clair, où
+le premier passerait sous le seuil de contraste. Sur un aplat orange,
+l'étiquette est anthracite et non blanche : le blanc n'y atteint que 3,7 pour 1
+quand il en faut 4,5 ; l'anthracite tient 4,7.
+
+**Les couleurs des graphiques ne sont pas choisies à l'œil.** Elles sont
+passées au validateur de la méthode dataviz, qui vérifie la bande de clarté, la
+saturation minimale, la séparation sous protanopie et deutéranopie, et le
+contraste sur la carte :
+
+```
+node scripts/validate_palette.js "#dd5f1e,#2f6fc4,#0f8a6a,#8b4bb0" --mode light --surface "#ffffff"
+node scripts/validate_palette.js "#dd5f1e,#2f6fc4,#0f8a6a" --mode light --surface "#ffffff" --pairs all
+node scripts/validate_palette.js "#e56a2b,#5a8de0,#25a482,#a273d4" --mode dark --surface "#1c1c1b"
+```
+
+Les quatre passent en voisines (le cas des barres groupées) et les trois
+premières passent toutes paires confondues (le cas de l'anneau, où la première
+touche la dernière). La couleur de dépassement a été choisie assez loin de
+l'orange pour qu'un budget dépassé ne se confonde pas avec les charges fixes.
+Au passage, l'ancienne palette échouait à ce dernier test : son orange et son
+ambre étaient trop proches pour être distingués, même avec une vision normale.
+
+**Ne pas changer ces valeurs sans relancer le validateur.**

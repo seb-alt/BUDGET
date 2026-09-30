@@ -68,7 +68,7 @@
   appearance: none;
   border: none;
   background: transparent;
-  color: var(--accent);
+  color: var(--accent-ink);
   font-size: 0.8125rem;
   cursor: pointer;
   padding: var(--space-1) var(--space-2);
@@ -113,7 +113,7 @@
 }
 
 .dash-indicator.tone-accent .dash-indicator-value {
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 /* --- Cartes budgétaires repliables ------------------------------------ */
@@ -339,7 +339,7 @@
   margin-top: var(--space-3);
   padding: var(--space-2) 0;
   font-size: 0.875rem;
-  color: var(--accent);
+  color: var(--accent-ink);
   cursor: pointer;
 }
 
@@ -386,7 +386,7 @@
 
 .dash-micro-link {
   font-size: 0.8125rem;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .dash-micro-grid {

@@ -364,7 +364,7 @@
 .set-restore-actions button.is-danger {
   background: var(--negative);
   border-color: var(--negative);
-  color: #fff;
+  color: var(--negative-text);
   font-weight: 600;
 }
 
