@@ -4,7 +4,7 @@
     le téléphone (cercle, goutte, carré arrondi…). Le fond couvre donc toute la
     surface, et le symbole reste dans les 80 % centraux pour ne jamais être rogné.
   -->
-  <rect width="512" height="512" fill="#3a63d8"/>
-  <text x="256" y="256" fill="#ffffff" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+  <rect width="512" height="512" fill="#dd5f1e"/>
+  <text x="256" y="256" fill="#1b1b1a" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
         font-size="216" font-weight="600" text-anchor="middle" dominant-baseline="central">€</text>
 </svg>

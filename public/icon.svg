@@ -1,10 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Budget">
   <!--
-    Icône provisoire, comme le reste du design (§13) : neutre et lisible à
-    petite taille. Le symbole € sur fond plein reste identifiable à 48 px,
-    là où un dessin détaillé deviendrait une tache.
+    L'icône reprend exactement les couleurs de l'application : l'orange d'accent
+    en fond, l'anthracite du texte pour le symbole. Le même couple que sur le
+    bouton principal, donc rien à retenir en plus.
+
+    Un symbole € plein reste identifiable à 48 px, là où un dessin détaillé
+    deviendrait une tache. L'anthracite sur l'orange tient 4,7 pour 1 — le blanc
+    n'y atteindrait que 3,7.
   -->
-  <rect width="512" height="512" rx="114" fill="#3a63d8"/>
-  <text x="256" y="256" fill="#ffffff" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+  <rect width="512" height="512" rx="114" fill="#dd5f1e"/>
+  <text x="256" y="256" fill="#1b1b1a" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
         font-size="300" font-weight="600" text-anchor="middle" dominant-baseline="central">€</text>
 </svg>
