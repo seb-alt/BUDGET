@@ -86,19 +86,23 @@ se met alors à jour au lieu d'être effacée.
 
 ## État d'avancement
 
+Le cahier des charges est couvert. Les étapes sont listées dans l'ordre où
+elles ont été construites, pas dans celui du document.
+
 - [x] **Étape 1** — socle : projet Vite, Dexie, modèle de données, remplissage initial
 - [x] **Étape 2** — saisie d'une opération, Dashboard, navigation, graphiques
 - [x] **Étape 3** — onglet Opérations : liste, recherche, filtres, édition, suppression
-- [x] **Gel des budgets mensuels** — un mois révolu ne bouge plus (§11)
-- [x] **Étape 4** — moteur d'épargne flexible et répartition LEP / PEA
+- [x] **Étape 4** — moteur d'épargne flexible et répartition LEP / PEA (§4)
 - [x] **Étape 5** — écran Paramètres
-- [x] **Étape 12** — rapport mensuel en Excel et en PDF (§12)
-- [x] **Étape 7** — onglet Patrimoine
-- [x] **Étape 8** — onglet Micro-entreprise
+- [x] **Étape 6** — sauvegarde, restauration et exports CSV
+- [x] **Étape 7** — onglet Patrimoine (§8)
+- [x] **Étape 8** — onglet Micro-entreprise (§9)
+- [x] **Étape 9** — PWA installable et hors connexion (§1)
+- [x] **Gel des budgets mensuels** — un mois révolu ne bouge plus (§11)
 - [x] **Étape 10** — opérations récurrentes (§7)
 - [x] **Étape 11** — identité visuelle : police, palette, mode sombre (§13)
-- [x] **Étape 6** — sauvegarde, restauration et exports CSV
-- [x] **Étape 9** — PWA installable et hors connexion
+- [x] **Étape 12** — rapport mensuel en Excel (§12)
+- [x] **Étape 13** — rapport mensuel en PDF (§12)
 
 ### Graphiques
 
