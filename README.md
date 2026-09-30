@@ -4,6 +4,10 @@ Application personnelle de gestion financière — budget courant, patrimoine, m
 React + TypeScript + Vite, données stockées **100 % en local** dans IndexedDB via Dexie.
 Aucun service cloud, aucun abonnement, aucune donnée qui sort de la machine.
 
+**Tu cherches à t'en servir, pas à le modifier ? → [GUIDE.md](GUIDE.md)** :
+installation sur téléphone, prise en main, et surtout sauvegarde des données.
+Ce README-ci s'adresse à qui touche au code.
+
 ## Démarrer
 
 ```bash
@@ -106,6 +110,7 @@ elles ont été construites, pas dans celui du document.
 - [x] **Étape 12** — rapport mensuel en Excel (§12)
 - [x] **Étape 13** — rapport mensuel en PDF (§12)
 - [x] **Étape 14** — bascule clair / sombre
+- [x] **Étape 15** — publication sur GitHub Pages et guide d'utilisation
 
 ### Graphiques
 
@@ -540,3 +545,35 @@ s'afficherait sans ses couleurs. C'est à peu près la même exigence que
 Au passage, l'icône des Paramètres a été redessinée. L'ancienne — un petit
 disque et huit rayons fins — se lisait comme un soleil, ce qui devenait
 franchement ambigu à côté d'un bouton de thème qui en affiche un pour de bon.
+
+### Publication
+
+`.github/workflows/deploy.yml` construit et publie sur GitHub Pages à chaque
+poussée sur `main`. Rien n'est publié tant que **Settings → Pages → Source :
+GitHub Actions** n'a pas été choisi dans le dépôt ; d'ici là le workflow échoue
+sans conséquence.
+
+Les contrôles passent **avant** la publication — lint, types, tests. Une
+version cassée ne doit jamais atteindre un téléphone.
+
+**L'application ne suppose plus d'être servie à la racine d'un domaine.** Un
+site de projet GitHub Pages vit dans un sous-dossier (`/BUDGET/`), et trois
+endroits écrivaient « / » en dur :
+
+| Où | Avant | Maintenant |
+| --- | --- | --- |
+| `vite.config.ts` | — | `base: process.env.BASE_PATH ?? '/'` |
+| `manifest.webmanifest` | `"start_url": "/"` | `"./"`, résolu par le navigateur |
+| `sw.js` | `['/', '/manifest…']` | `ROOT`, déduit de l'adresse du service worker |
+| `useServiceWorker.ts` | `register('/sw.js')` | `register(`${import.meta.env.BASE_URL}sw.js`)` |
+
+`ROOT` mérite un mot : le service worker connaît sa propre adresse, et le
+dossier qui la contient EST le dossier de l'application. Sans ça, il mettrait
+en cache la racine du domaine — c'est-à-dire autre chose que l'application,
+quand ce n'est pas une page d'erreur. Sa portée suit la même logique : déposé
+dans un sous-dossier, il ne contrôle que ce sous-dossier.
+
+Vérifié dans les deux configurations : à la racine, et servi depuis un
+sous-dossier par un serveur qui imite GitHub Pages — démarrage, manifeste
+résolu, portée du service worker, contenu du cache, et fonctionnement hors
+connexion.

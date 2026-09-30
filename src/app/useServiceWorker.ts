@@ -35,7 +35,11 @@ export function useServiceWorker(): ServiceWorkerState {
     let cancelled = false
 
     void navigator.serviceWorker
-      .register(`/sw.js?v=${__BUILD_ID__}`)
+      // `BASE_URL` est le chemin où l'application est publiée ('/' à la racine
+      // d'un domaine, '/BUDGET/' sur GitHub Pages). Il détermine aussi la
+      // PORTÉE du service worker : enregistré dans un sous-dossier, il ne
+      // contrôle que ce sous-dossier, ce qui est exactement ce qu'on veut.
+      .register(`${import.meta.env.BASE_URL}sw.js?v=${__BUILD_ID__}`)
       .then((registration) => {
         if (cancelled) return
 

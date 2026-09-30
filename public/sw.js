@@ -29,8 +29,21 @@
 const BUILD = new URL(self.location.href).searchParams.get('v') ?? 'dev'
 const CACHE = `budget-${BUILD}`
 
+/*
+ * OÙ L'APPLICATION EST SERVIE.
+ *
+ * Pas forcément à la racine d'un domaine : sur GitHub Pages, elle vit dans un
+ * sous-dossier. Ce fichier ne peut donc pas écrire « / » en dur, sinon il
+ * mettrait en cache la racine du domaine — c'est-à-dire autre chose que
+ * l'application, quand ce n'est pas une page d'erreur.
+ *
+ * Le service worker connaît sa propre adresse. Le dossier qui la contient EST
+ * le dossier de l'application, à n'importe quelle profondeur.
+ */
+const ROOT = new URL('./', self.location.href).pathname
+
 /** Le strict minimum pour afficher quelque chose hors ligne. */
-const SHELL = ['/', '/manifest.webmanifest', '/icon-192.png']
+const SHELL = [ROOT, `${ROOT}manifest.webmanifest`, `${ROOT}icon-192.png`]
 
 self.addEventListener('install', (event) => {
   // On prépare le nouveau cache, puis on ATTEND.
@@ -69,6 +82,9 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url)
   if (url.origin !== self.location.origin) return
 
+  // Une adresse en dehors du dossier de l'application ne la concerne pas.
+  if (!url.pathname.startsWith(ROOT)) return
+
   // La page : réseau d'abord, cache en secours. C'est ce qui empêche
   // l'application de rester bloquée sur une version périmée.
   if (request.mode === 'navigate') {
@@ -76,10 +92,10 @@ self.addEventListener('fetch', (event) => {
       fetch(request)
         .then((response) => {
           const copy = response.clone()
-          void caches.open(CACHE).then((cache) => cache.put('/', copy))
+          void caches.open(CACHE).then((cache) => cache.put(ROOT, copy))
           return response
         })
-        .catch(() => caches.match('/').then((cached) => cached ?? Response.error())),
+        .catch(() => caches.match(ROOT).then((cached) => cached ?? Response.error())),
     )
     return
   }
