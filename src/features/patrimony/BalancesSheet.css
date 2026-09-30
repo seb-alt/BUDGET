@@ -1,0 +1,78 @@
+/* Styles de l'écran « Actualiser mes soldes ». */
+
+.bal-loading {
+  padding: var(--space-6) var(--space-4);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.bal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.bal-intro {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.bal-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.bal-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.bal-field input[type='date'] {
+  appearance: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: 0.9375rem;
+}
+
+.bal-error {
+  margin: 0;
+  padding: var(--space-3);
+  background: var(--negative-soft);
+  color: var(--negative);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+
+.bal-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: var(--space-3) var(--space-4) max(var(--space-3), env(safe-area-inset-bottom));
+}
+
+.bal-submit {
+  appearance: none;
+  width: 100%;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-text);
+  border-radius: var(--radius-sm);
+  min-height: 3rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bal-submit:disabled {
+  background: var(--neutral-soft);
+  color: var(--text-faint);
+}

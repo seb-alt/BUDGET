@@ -1,0 +1,31 @@
+/* Styles du graphique en secteurs du Dashboard. */
+
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-4);
+}
+
+.chart-card h2 {
+  margin: 0 0 var(--space-1);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.chart-subtitle {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.chart-empty {
+  margin: var(--space-4) 0 0;
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+}
+

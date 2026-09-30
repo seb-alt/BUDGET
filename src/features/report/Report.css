@@ -1,0 +1,403 @@
+/**
+ * src/features/report/Report.css
+ *
+ * Le rapport à l'écran, puis à l'impression.
+ *
+ * C'est le bloc `@media print`, en bas, qui décide de la tête du PDF. Deux
+ * choses s'y jouent :
+ *
+ *  1. N'IMPRIMER QUE LE RAPPORT. `window.print()` imprime toute la page, or le
+ *     rapport est au fond de l'application. La méthode qui marche partout :
+ *     rendre tout invisible, puis rendre le rapport visible à nouveau, et le
+ *     remonter en haut de la feuille. Cacher les parents avec `display: none`
+ *     ne marcherait pas — cela cacherait aussi le rapport, qui est dedans.
+ *
+ *  2. IMPRIMER SUR DU PAPIER, PAS SUR UN ÉCRAN. Les couleurs sont forcées en
+ *     clair : imprimer un fond anthracite en mode sombre viderait une
+ *     cartouche et rendrait le texte illisible.
+ */
+
+.report-screen {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--surface-sunken);
+  padding: var(--space-4);
+}
+
+.report-page {
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  /* La largeur d'une page A4 moins ses marges : à l'écran, on voit déjà
+     comment le PDF se découpera. */
+  max-width: 182mm;
+  margin: 0 auto;
+}
+
+.report-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  border-bottom: 2px solid var(--text);
+  padding-bottom: var(--space-3);
+}
+
+.report-head h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.report-month {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--accent-ink);
+}
+
+.report-meta {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+/* --- Les quatre chiffres du mois --------------------------------------- */
+
+.report-figures {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+@media (min-width: 30rem) {
+  .report-figures {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.report-figure {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.report-figure-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.report-figure-value {
+  font-size: 1.0625rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.015em;
+}
+
+.report-figure.is-accent .report-figure-value {
+  color: var(--accent-ink);
+}
+
+/* --- Les tableaux ------------------------------------------------------- */
+
+.report-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  /* Un tableau de cinq colonnes ne tient pas dans un téléphone. Plutôt que de
+     le tronquer — la colonne « Reste » disparaissait purement et simplement —
+     on le laisse défiler latéralement. Aucune donnée n'est perdue, et à
+     l'impression cette règle est annulée : le papier est assez large. */
+  overflow-x: auto;
+}
+
+.report-block h2 {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+/*
+ * Sur un écran étroit, on resserre la typographie ET on retire les colonnes
+ * secondaires. Un tableau qui tient en entier se lit toujours mieux qu'un
+ * tableau qu'il faut faire défiler.
+ *
+ * Ce qui disparaît sur téléphone n'est jamais l'information principale : le
+ * groupe d'une catégorie (déjà donné par le tableau du dessus), la date
+ * d'émission d'une facture (l'échéance compte davantage), le compte d'une
+ * opération (son libellé compte davantage). Tout reste, en revanche, sur le
+ * papier et dans le classeur Excel.
+ */
+@media (max-width: 34rem) {
+  .report-table {
+    font-size: 0.75rem;
+  }
+
+  .report-table th,
+  .report-table td {
+    padding: 0.3125rem 0.375rem;
+  }
+
+  .report-table .is-optional {
+    display: none;
+  }
+}
+
+.report-table th,
+.report-table td {
+  padding: 0.375rem 0.5rem;
+  text-align: left;
+  font-weight: 400;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: top;
+}
+
+.report-table thead th {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.report-table tbody th {
+  font-weight: 500;
+}
+
+.is-number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.is-nowrap {
+  white-space: nowrap;
+}
+
+.report-table .is-over {
+  color: var(--chart-over);
+  font-weight: 600;
+}
+
+.report-total th,
+.report-total td {
+  font-weight: 600;
+  border-top: 1px solid var(--text);
+  border-bottom: none;
+}
+
+.report-tag {
+  margin-left: 0.375rem;
+  padding: 0.0625rem 0.3125rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 0.625rem;
+  letter-spacing: 0.02em;
+}
+
+.report-invoices {
+  margin-top: var(--space-3);
+}
+
+.report-empty,
+.report-foot {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.report-foot {
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-3);
+}
+
+/* --- Barre d'actions, à l'écran seulement ------------------------------ */
+
+.report-actions {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.report-actions button {
+  appearance: none;
+  flex: 1;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: 0.9375rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.report-actions button.is-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+/* --- L'impression, donc le PDF ----------------------------------------- */
+
+@page {
+  size: A4 portrait;
+  margin: 14mm;
+}
+
+@media print {
+  /*
+   * L'application entière disparaît — MAIS SEULEMENT SI LE RAPPORT EST OUVERT.
+   *
+   * C'est possible parce que le rapport est dans un PORTAIL, donc À CÔTÉ de
+   * `#root` et non dedans : sans ça, cacher l'application cacherait aussi le
+   * rapport.
+   *
+   * La condition `body:has(.report-portal)` n'est pas un détail : sans elle,
+   * un simple Ctrl+P n'importe où dans l'application imprimerait une page
+   * blanche.
+   */
+  body:has(.report-portal) #root {
+    display: none;
+  }
+
+  /* Le panneau redevient un simple bloc de texte, libre de couler sur
+     plusieurs pages : plus de position fixe, plus de hauteur d'écran, plus de
+     zone de défilement — ce sont exactement les trois choses qui empêchent
+     une impression de se répartir correctement. */
+  .report-portal .ui-sheet-backdrop {
+    position: static;
+    display: block;
+    background: none;
+  }
+
+  .report-portal .ui-sheet {
+    position: static;
+    display: block;
+    height: auto;
+    max-height: none;
+    max-width: none;
+    overflow: visible;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .report-portal .ui-sheet-header,
+  .report-actions {
+    display: none;
+  }
+
+  .report-screen {
+    overflow: visible;
+    padding: 0;
+    background: none;
+  }
+
+  .report-page {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    gap: 7mm;
+    /* Du papier : fond blanc et encre foncée, quel que soit le thème de
+       l'écran. Imprimer un fond anthracite viderait une cartouche et rendrait
+       le texte illisible. */
+    background: #ffffff;
+    color: #1b1b1a;
+  }
+
+  .report-month,
+  .report-figure.is-accent .report-figure-value,
+  .report-tag {
+    color: #b8480f;
+  }
+
+  .report-meta,
+  .report-block h2,
+  .report-table thead th,
+  .report-figure-label,
+  .report-foot,
+  .report-empty {
+    color: #55544f;
+  }
+
+  .report-head {
+    border-bottom-color: #1b1b1a;
+  }
+
+  .report-figure {
+    border-color: #c9c7c2;
+  }
+
+  .report-table th,
+  .report-table td {
+    border-bottom-color: #e0ded9;
+  }
+
+  .report-table thead th {
+    border-bottom-color: #a9a7a1;
+  }
+
+  .report-total th,
+  .report-total td {
+    border-top-color: #1b1b1a;
+  }
+
+  .report-tag {
+    background: none;
+    border: 1px solid #b8480f;
+  }
+
+  /* Un dépassement reste visible même imprimé en noir et blanc : le gras porte
+     l'information, la couleur ne fait que la renforcer. */
+  .report-table .is-over {
+    color: #ab2b3f;
+    font-weight: 700;
+  }
+
+  /* Sur plusieurs pages, l'en-tête du tableau se répète et une ligne n'est
+     jamais coupée en deux. Sans ça, une opération à cheval sur deux pages
+     devient illisible. */
+  thead {
+    display: table-header-group;
+  }
+
+  tr,
+  .report-figure {
+    break-inside: avoid;
+  }
+
+  .report-block h2 {
+    break-after: avoid;
+  }
+
+  /* Le défilement latéral n'a pas de sens sur du papier, et un conteneur qui
+     défile empêcherait le tableau de se répartir sur plusieurs pages. */
+  .report-block {
+    overflow: visible;
+  }
+}

@@ -1,0 +1,208 @@
+/* Styles de l'écran « Nouvelle opération ». */
+
+/* --- Montant, toujours visible en haut -------------------------------- */
+
+.op-amount {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: var(--space-4);
+  text-align: center;
+}
+
+.op-amount-value {
+  display: block;
+  font-size: 2.25rem;
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.op-amount-placeholder {
+  color: var(--text-faint);
+}
+
+.op-amount-currency {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* --- Corps défilant ---------------------------------------------------- */
+
+.op-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.op-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.op-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.op-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.op-field-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.op-field select,
+.op-field input {
+  appearance: none;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: 0.9375rem;
+}
+
+.op-field select:focus-visible,
+.op-field input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.op-hint {
+  margin: 0;
+  padding: var(--space-3);
+  background: var(--positive-soft);
+  color: var(--positive);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+
+.op-error {
+  margin: 0;
+  padding: var(--space-3);
+  background: var(--negative-soft);
+  color: var(--negative);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+
+/* --- Clavier et bouton, fixés en bas ----------------------------------- */
+
+.op-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: var(--space-3) var(--space-4) max(var(--space-3), env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.op-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.op-key {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  /* Cible tactile confortable : on doit pouvoir viser sans regarder.
+     44 px est le minimum recommandé pour un doigt. */
+  min-height: 2.75rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color 80ms ease;
+}
+
+.op-key:active {
+  background: var(--surface-sunken);
+}
+
+.op-submit {
+  appearance: none;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-text);
+  border-radius: var(--radius-sm);
+  min-height: 3rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.op-submit:disabled {
+  background: var(--neutral-soft);
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+
+/* --- Suppression, en deux temps --------------------------------------- */
+
+.op-delete {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: 0.875rem;
+  color: var(--negative);
+  cursor: pointer;
+}
+
+.op-delete:hover {
+  background: var(--negative-soft);
+  border-color: var(--negative);
+}
+
+.op-delete-confirm {
+  border: 1px solid var(--negative);
+  background: var(--negative-soft);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+}
+
+.op-delete-confirm p {
+  margin: 0 0 var(--space-3);
+  font-size: 0.875rem;
+  color: var(--negative);
+}
+
+.op-delete-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.op-delete-actions button {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.op-delete-actions button.is-danger {
+  background: var(--negative);
+  border-color: var(--negative);
+  color: var(--negative-text);
+  font-weight: 600;
+}

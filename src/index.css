@@ -1,0 +1,240 @@
+/**
+ * src/index.css
+ *
+ * Réglages globaux et « jetons de design » (§13).
+ *
+ * Toutes les couleurs, espacements et rayons de l'application sont définis ici
+ * sous forme de variables. Aucun composant n'écrit une couleur en dur — c'est
+ * ce qui permet de changer tout l'aspect de l'application depuis un seul
+ * fichier, mode sombre compris.
+ *
+ * ---------------------------------------------------------------------------
+ * LA PALETTE
+ * ---------------------------------------------------------------------------
+ * Trois familles, et rien d'autre :
+ *
+ *   - un GRIS CLAIR pour le fond,
+ *   - un ANTHRACITE pour le texte,
+ *   - un ORANGE pour ce qui doit ressortir.
+ *
+ * En mode sombre, les deux premiers s'échangent : fond anthracite, texte gris
+ * clair. L'orange, lui, ne change presque pas — c'est le repère de l'œil.
+ *
+ * L'orange est rare exprès. Une couleur d'accent n'attire l'œil que si elle
+ * est la seule à le faire : dès qu'elle est partout, elle ne dit plus rien.
+ * Concrètement, elle est réservée à ce sur quoi on peut AGIR (le bouton
+ * principal, l'onglet actif, la sélection) et au chiffre du moment.
+ *
+ * Le rouge et le vert restent définis, mais ils ne servent plus à colorer les
+ * montants ordinaires : une dépense normale n'est pas une alerte. Ils sont
+ * gardés pour ce qui signale vraiment quelque chose — un budget dépassé, un
+ * solde négatif, une suppression.
+ */
+
+/* --- La police -----------------------------------------------------------
+   Inter, mais hébergée DANS l'application, pas chargée depuis Google.
+   Trois raisons : elle doit fonctionner hors connexion (§1), tes données et ta
+   navigation n'ont rien à faire chez un tiers (§2), et une police servie de
+   l'extérieur peut disparaître ou changer un jour.
+
+   Le fichier est la version « variable » : une seule graisse continue de 100
+   à 900, donc un seul fichier de 48 Ko pour tous les niveaux de gras. Seul le
+   sous-ensemble latin est embarqué — il couvre l'intégralité du français,
+   accents, œ et € compris.
+
+   Fichier repris de @fontsource-variable/inter ; licence dans
+   src/assets/inter-LICENSE.txt (SIL Open Font License). */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  /* `swap` : le texte s'affiche tout de suite dans la police système, puis
+     bascule sur Inter dès qu'elle est chargée. Sans ça, le premier affichage
+     resterait blanc quelques dixièmes de seconde. */
+  font-display: swap;
+  src: url('./assets/inter-latin-variable.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  /*
+   * UNE SEULE DÉCLARATION PAR COULEUR, POUR LES DEUX THÈMES.
+   *
+   * `light-dark(clair, sombre)` choisit tout seul selon le thème actif. Avant,
+   * il fallait écrire deux blocs complets, l'un pour le clair et l'autre pour
+   * le sombre : quarante lignes en double, et le risque permanent d'en
+   * modifier une et d'oublier l'autre.
+   *
+   * C'est `color-scheme`, juste en dessous, qui décide lequel des deux est
+   * pris. Le laisser à `light dark` veut dire « suis le réglage du système » ;
+   * le forcer à l'un ou l'autre (voir le bas de ce fichier) impose un thème.
+   * Bonus : les éléments fournis par le navigateur — barres de défilement,
+   * sélecteur de date — suivent aussi, ce qu'un simple jeu de variables ne
+   * permettait pas.
+   */
+  color-scheme: light dark;
+
+  /* Surfaces et texte — gris clair et anthracite, très légèrement chauds pour
+     s'accorder à l'orange. Un gris parfaitement neutre le ferait virer au
+     rose. */
+  --bg: light-dark(#f4f3f1, #141413);
+  --surface: light-dark(#ffffff, #1c1c1b);
+  --surface-raised: light-dark(#ffffff, #242422);
+  --surface-sunken: light-dark(#ebe9e6, #101010);
+  --border: light-dark(#e3e1dd, #2d2d2a);
+  --border-soft: light-dark(#eeece9, #242422);
+  --text: light-dark(#1b1b1a, #ebebe9);
+  --text-muted: light-dark(#6b6a67, #a3a29e);
+  --text-faint: light-dark(#74736c, #8a8981);
+
+  /* L'accent. Deux valeurs, parce qu'un fond et un texte n'ont pas les mêmes
+     exigences de lisibilité :
+       --accent     : les aplats (bouton principal, onglet actif, sélection) ;
+       --accent-ink : l'orange quand il sert de TEXTE sur fond clair. L'orange
+                      vif n'y passerait pas le seuil de contraste, il est donc
+                      assombri. Sur fond sombre la question ne se pose pas, et
+                      les deux se rejoignent.
+     Sur l'aplat orange, l'étiquette est anthracite et non blanche : le blanc
+     sur cet orange descend à 3,7 pour 1, sous le seuil exigé pour du texte
+     courant. L'anthracite tient 4,7. */
+  --accent: light-dark(#dd5f1e, #f08a4e);
+  --accent-ink: light-dark(#b8480f, #f08a4e);
+  --accent-soft: light-dark(#fbeade, #33221a);
+  --accent-text: light-dark(#1b1b1a, #141413);
+
+  /* Couleurs de sens, volontairement sourdes. Elles ne sont jamais la seule
+     information : un signe + ou −, ou un mot, accompagne toujours le montant,
+     pour rester lisible en cas de daltonisme. */
+  --positive: light-dark(#1a6f4b, #56b98a);
+  --positive-soft: light-dark(#e7f1ec, #16271f);
+  --negative: light-dark(#ab2b3f, #e58095);
+  --negative-soft: light-dark(#f9eaec, #2e1a1d);
+  --negative-text: light-dark(#ffffff, #141413);
+  --neutral-soft: light-dark(#ebe9e6, #242422);
+
+  /* Espacements */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
+  /* Rayons et ombres. Les ombres sont presque invisibles : sur un fond gris
+     clair, un simple filet suffit à décoller une carte, et c'est ce qui donne
+     l'aspect posé plutôt que l'effet « boîtes qui flottent ».
+
+     Sur fond sombre, une ombre ne se voit pas : c'est le filet de bordure qui
+     sépare les cartes. D'où la couleur transparente — la forme de l'ombre
+     reste, mais elle ne peint rien. */
+  --radius-sm: 0.5rem;
+  --radius: 0.875rem;
+  --radius-lg: 1.25rem;
+  --shadow-card: 0 1px 2px light-dark(rgb(27 27 26 / 0.04), transparent);
+  --shadow-raised: 0 8px 24px light-dark(rgb(27 27 26 / 0.12), rgb(0 0 0 / 0.5));
+  --backdrop: light-dark(rgb(27 27 26 / 0.4), rgb(0 0 0 / 0.6));
+
+  /* Hauteur de la barre de navigation, réutilisée pour les marges du bas. */
+  --nav-height: 4.25rem;
+
+  /* --- Couleurs des graphiques ----------------------------------------
+     Une couleur par groupe budgétaire, la MÊME dans tous les graphiques :
+     l'orange veut toujours dire « charges fixes », partout. L'orange ouvre la
+     série parce que c'est la couleur de l'application ; les trois suivantes
+     s'en écartent le plus possible.
+
+     Ces valeurs ne sont pas choisies à l'œil : elles sont passées au
+     validateur de la méthode dataviz, qui vérifie la bande de clarté, la
+     saturation minimale, la séparation sous protanopie et deutéranopie, et le
+     contraste sur la carte. Les quatre passent en voisines (barres groupées),
+     et les trois premières passent même toutes paires confondues — le cas de
+     l'anneau, où la première touche la dernière. Les valeurs sombres ne sont
+     pas un éclaircissement automatique des claires : chacune a été revalidée
+     contre la carte sombre. Ne pas les changer sans revalider. */
+  --chart-1: light-dark(#dd5f1e, #e56a2b); /* charges fixes */
+  --chart-2: light-dark(#2f6fc4, #5a8de0); /* épargne & investissement */
+  --chart-3: light-dark(#0f8a6a, #25a482); /* loisirs */
+  --chart-4: light-dark(#8b4bb0, #a273d4); /* 4e série : 4e compte du patrimoine */
+  /* Couleur d'alerte, réservée au dépassement. Jamais utilisée comme couleur
+     de série, pour qu'elle garde son sens — et choisie assez loin de l'orange
+     pour qu'un dépassement ne se confonde pas avec les charges fixes. */
+  --chart-over: light-dark(#ab2b3f, #bb3550);
+
+  /* La police système reste en secours : si le fichier ne se charge pas, le
+     texte s'affiche quand même, dans quelque chose de proche. */
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Inter est dessinée un peu large ; le resserrer très légèrement est la
+     correction recommandée par ses auteurs. */
+  letter-spacing: -0.011em;
+  line-height: 1.5;
+  color: var(--text);
+  background-color: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+/*
+ * LE CHOIX MANUEL DU THÈME.
+ *
+ * Sans attribut `data-theme`, l'application suit le réglage du système : c'est
+ * le comportement par défaut, et il reste le bon pour la plupart des gens.
+ *
+ * L'attribut est posé sur `<html>` par un petit script placé dans index.html,
+ * AVANT le premier affichage. C'est ce qui évite de voir l'application
+ * apparaître en clair pendant une fraction de seconde avant de basculer en
+ * sombre.
+ */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background-color: var(--bg);
+}
+
+/* Les chiffres s'alignent en colonne : indispensable pour comparer des
+   montants d'un coup d'œil dans une liste. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pastille d'identité d'un groupe budgétaire. Elle se pose À CÔTÉ du texte :
+   on ne colore jamais le texte lui-même, qui deviendrait illisible. */
+.color-dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 999px;
+  flex: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/* Respecte le réglage système « réduire les animations ». */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

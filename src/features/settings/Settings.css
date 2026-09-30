@@ -1,0 +1,406 @@
+/* Styles de l'écran Paramètres. */
+
+.set-loading {
+  padding: var(--space-6) var(--space-4);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.set-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* --- Sections repliables ----------------------------------------------- */
+
+.set-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.set-card > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.set-card > summary::-webkit-details-marker {
+  display: none;
+}
+
+.set-caret {
+  color: var(--text-faint);
+  font-size: 1.25rem;
+  transform: rotate(90deg);
+  transition: transform 150ms ease;
+}
+
+.set-card[open] .set-caret {
+  transform: rotate(-90deg);
+}
+
+.set-section {
+  padding: 0 var(--space-4) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.set-subtitle {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.set-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.set-computed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+
+.set-computed p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.set-total {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.set-error {
+  margin: 0;
+  padding: var(--space-3);
+  background: var(--negative-soft);
+  color: var(--negative);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+
+.set-save {
+  appearance: none;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-text);
+  border-radius: var(--radius-sm);
+  min-height: 2.75rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.set-save:disabled {
+  background: var(--neutral-soft);
+  color: var(--text-faint);
+}
+
+/* --- Listes de catégories et de comptes -------------------------------- */
+
+.set-group + .set-group {
+  margin-top: var(--space-2);
+}
+
+.set-list {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.set-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Une ligne désactivée reste lisible : elle est mise en retrait, pas effacée. */
+.set-list li.is-inactive input {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.set-list input[type='text'] {
+  flex: 1 1 8rem;
+  min-width: 0;
+  appearance: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.9375rem;
+}
+
+.set-row-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.set-kind {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-right: var(--space-1);
+}
+
+.set-row-actions button {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  min-height: 2rem;
+  min-width: 2rem;
+  padding: 0 var(--space-2);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.set-row-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.set-row-actions button.is-on {
+  border-color: var(--positive);
+  color: var(--positive);
+}
+
+.set-row-actions button.is-danger {
+  color: var(--negative);
+}
+
+.set-row-actions button.is-danger:hover {
+  background: var(--negative-soft);
+  border-color: var(--negative);
+}
+
+/* --- Ajout et plafonds -------------------------------------------------- */
+
+.set-add-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+}
+
+.set-add-row input,
+.set-add-row select {
+  flex: 1 1 7rem;
+  min-width: 0;
+  appearance: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.9375rem;
+}
+
+.set-add-row button {
+  appearance: none;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-text);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.set-add-row button:disabled {
+  background: var(--neutral-soft);
+  color: var(--text-faint);
+}
+
+.set-ceiling {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.set-ceiling button {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.set-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.9375rem;
+}
+
+.set-todo {
+  margin: var(--space-3) 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* --- Sauvegarde et export ---------------------------------------------- */
+
+.set-backup-state {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.set-backup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.set-outline {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  min-height: 2.75rem;
+  padding: 0 var(--space-4);
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+
+.set-files {
+  list-style: none;
+  margin: var(--space-2) 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.set-files li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: 0.875rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.set-files button {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.8125rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.set-section input[type='file'] {
+  width: 100%;
+  font-size: 0.875rem;
+  margin: var(--space-2) 0;
+}
+
+.set-restore {
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--negative);
+  background: var(--negative-soft);
+  border-radius: var(--radius-sm);
+}
+
+.set-restore p {
+  margin: 0 0 var(--space-2);
+  font-size: 0.875rem;
+}
+
+.set-restore-warning {
+  color: var(--negative);
+}
+
+.set-restore-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.set-restore-actions button {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.set-restore-actions button.is-danger {
+  background: var(--negative);
+  border-color: var(--negative);
+  color: var(--negative-text);
+  font-weight: 600;
+}
+
+.set-section code {
+  font-size: 0.8125rem;
+  background: var(--surface-sunken);
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+}
+
+/* --- Règles récurrentes -------------------------------------------------- */
+
+.set-rule {
+  appearance: none;
+  border: none;
+  background: transparent;
+  flex: 1 1 10rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: var(--space-2) 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.set-rule-name {
+  font-size: 0.9375rem;
+}
+
+.set-rule-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.set-list li.is-inactive .set-rule-name {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}

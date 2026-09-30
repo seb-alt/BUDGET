@@ -1,0 +1,67 @@
+# Publier l'application sur GitHub Pages.
+#
+# Ce fichier ne publie RIEN tant que Pages n'a pas été activé dans les réglages
+# du dépôt (Settings → Pages → Source : GitHub Actions). Tant que ce n'est pas
+# fait, le workflow échoue sans conséquence.
+#
+# Ce qui est publié : le CODE de l'application. Tes données, elles, ne quittent
+# jamais ton téléphone — elles vivent dans le stockage de ton navigateur, et
+# aucune ligne de ce projet ne les envoie où que ce soit.
+
+name: Publier sur GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Permet aussi de relancer la publication à la main depuis l'onglet Actions.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Une seule publication à la fois ; on ne coupe pas celle qui est en cours.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Les contrôles passent AVANT la publication : une version cassée ne doit
+      # jamais atteindre le téléphone.
+      - run: npm run lint
+      - run: npx tsc --noEmit -p tsconfig.app.json
+      - run: npm test -- --run
+
+      - name: Construire
+        # L'adresse d'un site de projet GitHub Pages se termine par le nom du
+        # dépôt. Sans ce préfixe, le navigateur chercherait les fichiers à la
+        # racine du domaine, où il n'y a rien.
+        run: BASE_PATH="/${GITHUB_REPOSITORY#*/}/" npm run build
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

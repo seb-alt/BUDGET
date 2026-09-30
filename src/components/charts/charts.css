@@ -1,0 +1,204 @@
+/* Styles communs aux graphiques (src/components/charts/). */
+
+.chart-empty {
+  margin: var(--space-4) 0 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* --- Anneau de répartition --------------------------------------------- */
+
+.donut {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.donut-svg {
+  width: 100%;
+  max-width: 15rem;
+  height: auto;
+}
+
+.donut-slice {
+  transition: opacity 150ms ease;
+  cursor: default;
+}
+
+.donut-slice.is-dimmed,
+.donut-legend li.is-dimmed,
+.bars-rect.is-dimmed {
+  opacity: 0.35;
+}
+
+.donut-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  fill: var(--text-muted);
+}
+
+.donut-center-value {
+  font-size: 1.125rem;
+  font-weight: 650;
+  fill: var(--text);
+}
+
+.donut-center-label {
+  font-size: 0.625rem;
+  fill: var(--text-muted);
+}
+
+.donut-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.donut-legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  transition: opacity 150ms ease;
+}
+
+.donut-legend-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.donut-legend-value {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+@media (min-width: 30rem) {
+  .donut {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-5);
+  }
+
+  .donut-svg {
+    max-width: 13rem;
+  }
+}
+
+/* --- Courbe ------------------------------------------------------------- */
+
+.line {
+  margin-top: var(--space-3);
+}
+
+.line-svg,
+.bars-svg {
+  width: 100%;
+  height: auto;
+  touch-action: pan-y;
+}
+
+/* Repères en retrait : la donnée est la seule chose qui a le droit d'être
+   voyante. Trait plein et d'un pixel, jamais de pointillés. */
+.line-grid {
+  stroke: var(--border-soft);
+  stroke-width: 1;
+}
+
+.bars-baseline {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.line-tick {
+  font-size: 0.5625rem;
+  fill: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.line-path {
+  stroke: var(--chart-1);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Un lavis, jamais un aplat : la surface suggère le volume sans écraser
+   la courbe elle-même. */
+.line-area {
+  fill: color-mix(in oklab, var(--chart-1) 10%, transparent);
+}
+
+.line-cursor {
+  stroke: var(--text-faint);
+  stroke-width: 1;
+}
+
+.line-dot {
+  fill: var(--chart-1);
+  /* Anneau de la couleur du fond : le point reste lisible là où il croise
+     la courbe ou une graduation. */
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.line-readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+  font-size: 0.875rem;
+}
+
+.line-readout strong {
+  font-size: 1.125rem;
+  font-weight: 650;
+}
+
+.line-readout span {
+  color: var(--text-muted);
+}
+
+/* --- Barres groupées ---------------------------------------------------- */
+
+.bars {
+  margin-top: var(--space-3);
+}
+
+.bars-rect {
+  transition: opacity 150ms ease;
+}
+
+.bars-legend {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.bars-legend li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: 0.8125rem;
+}
+
+.bars-legend-name {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-muted);
+}
+
+.bars-legend-values {
+  display: flex;
+  gap: var(--space-3);
+  white-space: nowrap;
+}

@@ -1,0 +1,226 @@
+/* Styles des briques réutilisables de src/components/ui/. */
+
+/* --- Carte ------------------------------------------------------------- */
+
+.ui-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+
+/* --- Sélecteur segmenté (Dépense | Entrée | Transfert) ----------------- */
+
+.ui-segmented {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+
+.ui-segmented button {
+  appearance: none;
+  border: none;
+  background: transparent;
+  border-radius: calc(var(--radius-sm) - 0.125rem);
+  padding: var(--space-2) var(--space-2);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  /* Une étiquette ne se coupe jamais en deux lignes : avec cinq choix sur un
+     écran de téléphone, « 6 mois » se retrouverait sur deux étages. */
+  white-space: nowrap;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+/* Cinq choix tiennent tout juste : on resserre un peu la typographie. */
+.ui-segmented:has(button:nth-child(5)) button {
+  padding: var(--space-2) var(--space-1);
+  font-size: 0.8125rem;
+}
+
+.ui-segmented button:hover {
+  color: var(--text);
+}
+
+.ui-segmented button[aria-pressed='true'] {
+  background: var(--surface-raised);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: var(--shadow-card);
+}
+
+/* --- Grille de boutons de choix (catégories) --------------------------- */
+
+.ui-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ui-choice {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.9375rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.ui-choice:hover {
+  border-color: var(--accent);
+}
+
+.ui-choice[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+/* --- Panneau plein écran (saisie) -------------------------------------- */
+
+.ui-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--backdrop);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+}
+
+.ui-sheet {
+  background: var(--bg);
+  width: 100%;
+  max-width: 30rem;
+  max-height: 100dvh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 40rem) {
+  .ui-sheet-backdrop {
+    align-items: center;
+    padding: var(--space-4);
+  }
+
+  .ui-sheet {
+    height: auto;
+    max-height: min(46rem, 92dvh);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-raised);
+  }
+}
+
+.ui-sheet-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.ui-sheet-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ui-sheet-close {
+  appearance: none;
+  border: none;
+  background: transparent;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.ui-sheet-close:hover {
+  background: var(--surface-sunken);
+  color: var(--text);
+}
+
+/* --- Champ de montant -------------------------------------------------- */
+
+.ui-amount-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.ui-field-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.ui-field-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ui-amount {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-3);
+}
+
+.ui-amount.is-invalid {
+  border-color: var(--negative);
+}
+
+.ui-amount:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.ui-amount input {
+  flex: 1;
+  min-width: 0;
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: var(--space-3) 0;
+  font-size: 1rem;
+}
+
+/* Les chiffres seuls sont alignés à droite, contre le symbole € : c'est ce qui
+   permet de comparer deux montants d'un coup d'œil. Un nom de règle ou une
+   date, eux, se lisent depuis la gauche comme le reste du formulaire — les
+   aligner à droite donnait un champ « Nom » qui semblait déjà rempli de
+   travers. */
+.ui-amount input[inputmode='decimal'],
+.ui-amount input[inputmode='numeric'] {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ui-amount input:focus {
+  outline: none;
+}
+
+.ui-amount span {
+  color: var(--text-muted);
+}

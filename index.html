@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- viewport-fit=cover : l'application dessine jusque sous l'encoche, et
+         le CSS réserve la place avec env(safe-area-inset-*). -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Budget</title>
+    <meta name="description" content="Budget courant, patrimoine et micro-entreprise. Données 100 % locales." />
+
+    <link rel="icon" type="image/png" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- La couleur de la barre système suit le thème : une barre claire
+         au-dessus d'une application sombre trancherait désagréablement. -->
+    <!-- Une seule balise, dont la valeur est posée juste en dessous puis tenue
+         à jour par l'application : avec deux balises conditionnelles, un choix
+         manuel de thème ne pourrait pas les contredire. -->
+    <meta name="theme-color" content="#f4f3f1" />
+
+    <!--
+      Ce script s'exécute AVANT le premier pixel affiché.
+
+      Sans lui, quelqu'un qui a choisi le mode sombre verrait l'application
+      apparaître en clair pendant une fraction de seconde à chaque ouverture,
+      le temps que React démarre et lise sa préférence. Le clignement est
+      court, mais il se produit à CHAQUE lancement.
+
+      Il est écrit à l'ancienne, sans module ni dépendance, pour ne rien avoir
+      à télécharger avant de s'exécuter.
+    -->
+    <script>
+      ;(function () {
+        var choice = null
+        try {
+          choice = localStorage.getItem('budget-theme')
+        } catch (error) {
+          /* Navigation privée : on suivra le réglage du système. */
+        }
+        if (choice === 'light' || choice === 'dark') {
+          document.documentElement.dataset.theme = choice
+        }
+        var dark =
+          choice === 'dark' ||
+          (choice !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        document
+          .querySelector('meta[name="theme-color"]')
+          .setAttribute('content', dark ? '#141413' : '#f4f3f1')
+      })()
+    </script>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Budget" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
