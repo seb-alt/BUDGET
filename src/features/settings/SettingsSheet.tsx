@@ -94,7 +94,7 @@ export function SettingsSheet({ onClose, onSaved }: SettingsSheetProps) {
               ›
             </span>
           </summary>
-          <CategoriesSection categories={categories} onSaved={onSaved} />
+          <CategoriesSection categories={categories} accounts={accounts} onSaved={onSaved} />
         </details>
 
         <details className="set-card">

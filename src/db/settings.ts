@@ -127,11 +127,85 @@ export interface NewCategory {
   group: CategoryGroup
   /** Proposée comme bouton d'accès rapide dans l'écran de saisie. */
   quickPick: boolean
+  /** Obligatoire pour une enveloppe d'épargne : les comptes qu'elle alimente. */
+  savingAccountIds?: string[]
+}
+
+/**
+ * Vérifie les comptes d'une enveloppe d'épargne.
+ *
+ * DEUX RÈGLES, ET LA SECONDE EST LA PLUS IMPORTANTE.
+ *
+ * 1. Un compte ne peut alimenter qu'UNE SEULE enveloppe. Sinon un virement de
+ *    300 € vers le LEP serait compté dans les deux, et le total du groupe
+ *    Épargne afficherait 600 €. L'erreur serait invisible : aucun message,
+ *    juste un chiffre faux. Mieux vaut un refus explicite.
+ *
+ * 2. Le compte doit être marqué « compte d'épargne ». Un virement vers un
+ *    compte courant n'est pas de l'épargne, l'enveloppe resterait à zéro.
+ *
+ * `requireOne` n'est vrai qu'à la CRÉATION. Le refuser aussi à la modification
+ * créerait une impasse : déplacer l'unique compte d'une enveloppe vers une
+ * autre deviendrait impossible, puisqu'il faudrait le retirer d'abord. Une
+ * enveloppe sans compte n'est pas incohérente, seulement inutile — l'écran le
+ * signale au lieu de l'interdire.
+ */
+async function checkSavingAccounts(
+  accountIds: string[],
+  categoryId?: string,
+  requireOne = false,
+): Promise<void> {
+  if (requireOne && accountIds.length === 0) {
+    throw new Error(
+      'Choisis au moins un compte : une enveloppe d’épargne se remplit par virement.',
+    )
+  }
+
+  const accounts = await db.accounts.bulkGet(accountIds)
+  for (const [index, account] of accounts.entries()) {
+    if (account === undefined) throw new Error('Un des comptes choisis n’existe plus.')
+    if (!account.countsAsSavings) {
+      throw new Error(
+        `« ${account.name} » n’est pas un compte d’épargne : un virement vers lui ne compterait pas comme de l’épargne.`,
+      )
+    }
+    void index
+  }
+
+  const others = (await db.categories.toArray()).filter(
+    (category) => category.kind === 'saving' && category.id !== categoryId,
+  )
+  for (const other of others) {
+    const clash = (other.savingAccountIds ?? []).find((id) => accountIds.includes(id))
+    if (clash !== undefined) {
+      const name = (await db.accounts.get(clash))?.name ?? clash
+      throw new Error(
+        `« ${name} » alimente déjà l’enveloppe « ${other.name} ». Un compte ne peut en alimenter qu’une, sinon le même virement serait compté deux fois.`,
+      )
+    }
+  }
+}
+
+/** Change les comptes alimentant une enveloppe d'épargne existante. */
+export async function setCategorySavingAccounts(
+  id: string,
+  accountIds: string[],
+): Promise<void> {
+  const category = await db.categories.get(id)
+  if (category === undefined) throw new Error('Cette catégorie n’existe plus.')
+  if (category.kind !== 'saving')
+    throw new Error('Seule une enveloppe d’épargne a des comptes.')
+
+  await checkSavingAccounts(accountIds, id)
+  await db.categories.update(id, { savingAccountIds: accountIds })
 }
 
 export async function addCategory(input: NewCategory): Promise<string> {
   const name = input.name.trim()
   if (name === '') throw new Error('Donne un nom à la catégorie.')
+
+  if (input.kind === 'saving')
+    await checkSavingAccounts(input.savingAccountIds ?? [], undefined, true)
 
   const siblings = await db.categories.where('group').equals(input.group).toArray()
   const category: Category = {
@@ -143,6 +217,7 @@ export async function addCategory(input: NewCategory): Promise<string> {
     active: true,
     quickPick: input.quickPick,
     isMicro: input.group === 'micro' ? true : undefined,
+    savingAccountIds: input.kind === 'saving' ? input.savingAccountIds : undefined,
   }
 
   await db.categories.add(category)
