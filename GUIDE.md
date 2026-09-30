@@ -42,32 +42,35 @@ Tout le reste est du confort. Ça, non.
 Pour installer une application web sur un téléphone, il lui faut une adresse.
 Le code est sur GitHub ; il suffit de demander à GitHub de le servir.
 
-1. **Fusionne le travail dans la branche `main`.** Tout a été développé sur une
-   branche à part ; la publication ne se déclenche que depuis `main`. Sur
-   GitHub : onglet **Pull requests** → **New pull request** → de la branche
-   `claude/new-session-hc8u08` vers `main` → **Merge**.
-2. Va sur ton dépôt : **github.com/seb-alt/BUDGET**
-3. Onglet **Settings** (Réglages), puis **Pages** dans la colonne de gauche
-4. Sous **Source**, choisis **GitHub Actions**
-5. C'est tout. À chaque fois que le code changera, le site se reconstruira tout
-   seul.
+**L'ordre compte.** Le réglage de Pages doit être posé AVANT la première
+publication : sinon la construction se lance, réussit… et échoue à la dernière
+étape avec « Get Pages site failed », faute de site où déposer le résultat.
 
-Tu peux suivre la construction dans l'onglet **Actions** : une coche verte veut
-dire que le site est en ligne. Elle prend deux à trois minutes.
+1. **Rends le dépôt public.** Settings → General → tout en bas, *Danger Zone* →
+   *Change repository visibility* → **Public**. GitHub Pages n'est gratuit que
+   sur un dépôt public ; sur un dépôt privé, il faut un compte payant.
+2. **Active Pages.** Settings → **Pages** → sous *Source*, choisis
+   **GitHub Actions**. Rien d'autre à régler.
+3. **Fusionne le travail dans `main`.** Tout a été développé sur une branche à
+   part, et la publication ne se déclenche que depuis `main`. Onglet
+   **Pull requests** → **New pull request** → de `claude/new-session-hc8u08`
+   vers `main` → **Merge**.
+4. **Regarde l'onglet Actions.** Une coche verte veut dire que le site est en
+   ligne. Compte deux à trois minutes.
 
-Après quelques minutes, ton application est à l'adresse :
+Après ça, ton application est à l'adresse :
 
 ```
 https://seb-alt.github.io/BUDGET/
 ```
 
+> **Si la publication a déjà échoué** parce que l'étape 2 est venue trop tard :
+> pose le réglage, puis onglet **Actions** → *Publier sur GitHub Pages* →
+> bouton **Run workflow**. Rien à corriger dans le code.
+
 **Ce qui est publié, c'est le CODE de l'application, pas tes données.** N'importe
 qui avec ce lien obtiendrait une application *vide*, la sienne. Tes chiffres ne
 sont sur aucun serveur — ils sont dans ton téléphone.
-
-> Si tu préfères que même le code reste privé, dis-le-moi : on peut le servir
-> depuis un hébergement privé. Mais ce n'est pas nécessaire pour la
-> confidentialité de tes données.
 
 ### Sur iPhone (Safari)
 

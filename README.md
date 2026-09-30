@@ -551,9 +551,21 @@ franchement ambigu à côté d'un bouton de thème qui en affiche un pour de bon
 ### Publication
 
 `.github/workflows/deploy.yml` construit et publie sur GitHub Pages à chaque
-poussée sur `main`. Rien n'est publié tant que **Settings → Pages → Source :
-GitHub Actions** n'a pas été choisi dans le dépôt ; d'ici là le workflow échoue
-sans conséquence.
+poussée sur `main`.
+
+**L'ordre compte.** `Settings → Pages → Source : GitHub Actions` doit être posé
+AVANT la première publication. Sinon la construction se lance, réussit, puis
+échoue à l'étape `configure-pages` avec « Get Pages site failed » : il n'y a
+pas de site où déposer le résultat. Le réglage, puis *Run workflow* depuis
+l'onglet Actions, suffit — rien à corriger dans le code.
+
+L'action sait activer Pages elle-même (paramètre `enablement`), mais cela exige
+un jeton d'accès personnel à créer et à ranger dans les secrets du dépôt : plus
+de travail que le réglage lui-même, et un secret de plus à surveiller.
+
+GitHub Pages n'est gratuit que sur un dépôt **public** ; sur un dépôt privé, il
+faut un compte payant. C'est la raison pour laquelle le remplissage initial ne
+contient plus aucune valeur personnelle (voir plus bas).
 
 Les contrôles passent **avant** la publication — lint, types, tests. Une
 version cassée ne doit jamais atteindre un téléphone.
