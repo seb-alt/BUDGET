@@ -65,6 +65,7 @@ export const CATEGORY_IDS = {
   microMateriel: 'cat-micro-materiel',
   microDeplacements: 'cat-micro-deplacements',
   microAutres: 'cat-micro-autres',
+  microUrssaf: 'cat-micro-urssaf',
 } as const
 
 /* ------------------------------------------------------------------ */
@@ -145,6 +146,7 @@ const seedCategories = (): Category[] => [
   { id: CATEGORY_IDS.microMateriel, name: 'Matériel', kind: 'expense', group: 'micro', order: 3, active: true, isMicro: true },
   { id: CATEGORY_IDS.microDeplacements, name: 'Déplacements', kind: 'expense', group: 'micro', order: 4, active: true, isMicro: true },
   { id: CATEGORY_IDS.microAutres, name: 'Autres', kind: 'expense', group: 'micro', order: 5, active: true, isMicro: true },
+  { id: CATEGORY_IDS.microUrssaf, name: 'URSSAF', kind: 'expense', group: 'micro', order: 6, active: true, isMicro: true },
 ]
 
 /**
@@ -191,6 +193,7 @@ const seedMicroSettings = (): MicroSettings => ({
   acreEnabled: false,
   defaultPaymentTermDays: 30,
   microAccountId: ACCOUNT_IDS.micro,
+  urssafCategoryId: CATEGORY_IDS.microUrssaf,
   invoiceNumberPrefix: 'F',
   nextInvoiceNumber: 1,
   createdAt: now(),

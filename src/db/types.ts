@@ -360,6 +360,12 @@ export interface MicroSettings {
   defaultPaymentTermDays: number
   /** Compte sur lequel arrivent les encaissements micro. */
   microAccountId: string
+  /**
+   * Catégorie qui enregistre les versements RÉELLEMENT faits à l'URSSAF.
+   * Les distinguer de la provision calculée est indispensable : sans ça,
+   * impossible de savoir ce qu'il reste à payer.
+   */
+  urssafCategoryId: string
   invoiceNumberPrefix: string
   nextInvoiceNumber: number
   createdAt: IsoTimestamp

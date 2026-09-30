@@ -31,7 +31,7 @@ import { db } from './db'
 import type { MicroInvoice, PatrimonySnapshot, Settings, Transaction } from './types'
 
 /** Version du schéma de la base. Doit suivre le dernier `.version(n)` de db.ts. */
-export const SCHEMA_VERSION = 3
+export const SCHEMA_VERSION = 4
 
 /* ------------------------------------------------------------------ */
 /* Export complet                                                      */

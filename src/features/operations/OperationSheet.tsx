@@ -63,17 +63,25 @@ function amountToText(cents: number): string {
 interface OperationSheetProps {
   /** Opération à modifier. Absent = création. */
   transaction?: Transaction
+  /**
+   * Mode « dépense professionnelle » : propose les catégories micro et le
+   * compte Micro, et marque l'opération comme telle. Sans ça, une dépense pro
+   * se retrouverait dans le budget personnel, ce que le §9 interdit.
+   */
+  micro?: boolean
   onClose: () => void
   /** Appelé après un enregistrement ou une suppression réussis. */
   onSaved: (message: string) => void
 }
 
-export function OperationSheet({ transaction, onClose, onSaved }: OperationSheetProps) {
+export function OperationSheet({ transaction, micro = false, onClose, onSaved }: OperationSheetProps) {
   const isEditing = transaction !== undefined
+  const isMicro = micro || transaction?.isMicro === true
 
   const accounts = useLiveQuery(() => db.accounts.orderBy('order').toArray(), [])
   const categories = useLiveQuery(() => db.categories.orderBy('[group+order]').toArray(), [])
   const settings = useLiveQuery(() => db.settings.get(1), [])
+  const microSettings = useLiveQuery(() => db.microSettings.get(1), [])
 
   const [type, setType] = useState<TransactionType>(transaction?.type ?? 'expense')
   const [amountText, setAmountText] = useState(
@@ -99,7 +107,8 @@ export function OperationSheet({ transaction, onClose, onSaved }: OperationSheet
   // défini dans les paramètres (CIC). On le DÉDUIT au moment de l'affichage
   // plutôt que de l'écrire dans l'état depuis un effet — ça évite un rendu
   // supplémentaire et un état qui peut se désynchroniser des réglages.
-  const effectiveAccountId = accountId ?? settings?.defaultAccountId
+  const effectiveAccountId =
+    accountId ?? (isMicro ? microSettings?.microAccountId : settings?.defaultAccountId)
   const effectiveFromAccountId = fromAccountId ?? settings?.defaultAccountId
 
   /**
@@ -121,10 +130,13 @@ export function OperationSheet({ transaction, onClose, onSaved }: OperationSheet
         (category) =>
           category.active &&
           category.kind === kind &&
+          // En mode professionnel, ce sont les catégories micro qu'on propose,
+          // et elles seules.
+          (category.isMicro === true) === isMicro &&
           // En modification, on garde visible la catégorie déjà choisie même si
           // elle n'est pas dans les accès rapides : sinon elle disparaîtrait du
           // formulaire et une simple correction de montant l'effacerait.
-          (category.quickPick === true || category.id === transaction?.categoryId),
+          (isMicro || category.quickPick === true || category.id === transaction?.categoryId),
       )
       .sort(
         (a, b) =>
@@ -132,7 +144,7 @@ export function OperationSheet({ transaction, onClose, onSaved }: OperationSheet
           a.order - b.order,
       )
       .map((category) => ({ value: category.id, label: category.name }))
-  }, [categories, type, transaction?.categoryId])
+  }, [categories, type, transaction?.categoryId, isMicro])
 
   const amount = parseAmountInput(amountText)
 
@@ -144,6 +156,7 @@ export function OperationSheet({ transaction, onClose, onSaved }: OperationSheet
     ...(type === 'transfer'
       ? { fromAccountId: effectiveFromAccountId, toAccountId }
       : { categoryId, accountId: effectiveAccountId }),
+    isMicro,
   }
   const problems = validateTransaction(draft)
   const canSave = amount !== null && problems.length === 0 && !isSaving
@@ -212,7 +225,16 @@ export function OperationSheet({ transaction, onClose, onSaved }: OperationSheet
   }
 
   return (
-    <Sheet title={isEditing ? "Modifier l'opération" : 'Nouvelle opération'} onClose={onClose}>
+    <Sheet
+      title={
+        isEditing
+          ? "Modifier l'opération"
+          : isMicro
+            ? 'Nouvelle dépense professionnelle'
+            : 'Nouvelle opération'
+      }
+      onClose={onClose}
+    >
       <div className="op-amount">
         <output className="op-amount-value tabular" aria-live="polite">
           {amountText === '' ? <span className="op-amount-placeholder">0</span> : amountText}

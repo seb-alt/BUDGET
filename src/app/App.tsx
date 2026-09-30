@@ -16,6 +16,7 @@ import { Dashboard } from '../features/dashboard/Dashboard'
 import { OperationSheet } from '../features/operations/OperationSheet'
 import { OperationsList } from '../features/operations/OperationsList'
 import { BalancesSheet } from '../features/patrimony/BalancesSheet'
+import { MicroScreen } from '../features/micro/MicroScreen'
 import { PatrimonyScreen } from '../features/patrimony/PatrimonyScreen'
 import { SettingsSheet } from '../features/settings/SettingsSheet'
 import type { Transaction } from '../db/types'
@@ -76,10 +77,6 @@ const TABS: { id: Tab; label: string; icon: ReactElement }[] = [
   },
 ]
 
-const PLACEHOLDERS: Record<'micro', string> = {
-  micro: "L'onglet Micro-entreprise (factures, clients, URSSAF) n'est pas encore construit.",
-}
-
 export default function App() {
   const [tab, setTab] = useState<Tab>('accueil')
   /**
@@ -87,7 +84,7 @@ export default function App() {
    * modification d'une opération précise. Un seul état les porte tous les
    * trois, pour qu'il soit impossible d'être « en création ET en modification ».
    */
-  const [sheet, setSheet] = useState<{ transaction?: Transaction } | undefined>()
+  const [sheet, setSheet] = useState<{ transaction?: Transaction; micro?: boolean } | undefined>()
   const [isBalancesOpen, setBalancesOpen] = useState(false)
   const [isSettingsOpen, setSettingsOpen] = useState(false)
   const [toast, setToast] = useState<string>()
@@ -128,6 +125,7 @@ export default function App() {
             onShowAllOperations={() => setTab('operations')}
             onUpdateBalances={() => setBalancesOpen(true)}
             onOpenSettings={() => setSettingsOpen(true)}
+            onOpenMicro={() => setTab('micro')}
           />
         )}
         {tab === 'operations' && (
@@ -136,12 +134,7 @@ export default function App() {
         {tab === 'patrimoine' && (
           <PatrimonyScreen onUpdateBalances={() => setBalancesOpen(true)} />
         )}
-        {tab === 'micro' && (
-          <div className="app-placeholder">
-            <h1>{TABS.find((item) => item.id === tab)?.label}</h1>
-            <p>{PLACEHOLDERS[tab]}</p>
-          </div>
-        )}
+        {tab === 'micro' && <MicroScreen onAddExpense={() => setSheet({ micro: true })} />}
       </main>
 
       {toast !== undefined && (
@@ -184,8 +177,9 @@ export default function App() {
           // Remonter l'identifiant dans la clé force React à repartir d'un
           // formulaire neuf quand on passe d'une opération à une autre, au
           // lieu de garder les valeurs de la précédente.
-          key={sheet.transaction?.id ?? 'nouvelle'}
+          key={sheet.transaction?.id ?? (sheet.micro === true ? 'micro' : 'nouvelle')}
           transaction={sheet.transaction}
+          micro={sheet.micro}
           onClose={() => setSheet(undefined)}
           onSaved={setToast}
         />

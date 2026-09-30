@@ -115,6 +115,31 @@ export class BudgetDatabase extends Dexie {
         await settings.update(1, { flexibleSavingsCategoryId: 'cat-epargne-flexible' })
       }
     })
+
+    // --- VERSION 4 : catégorie des versements URSSAF.
+    // L'onglet Micro doit distinguer les cotisations PROVISIONNÉES (un calcul)
+    // de celles RÉELLEMENT VERSÉES (une dépense enregistrée). Ces versements
+    // ont donc besoin de leur propre catégorie.
+    this.version(4).upgrade(async (transaction) => {
+      const categories = transaction.table<Category>('categories')
+      if ((await categories.get('cat-micro-urssaf')) === undefined) {
+        await categories.add({
+          id: 'cat-micro-urssaf',
+          name: 'URSSAF',
+          kind: 'expense',
+          group: 'micro',
+          order: 6,
+          active: true,
+          isMicro: true,
+        })
+      }
+
+      const microSettings = transaction.table<MicroSettings>('microSettings')
+      const existing = await microSettings.get(1)
+      if (existing !== undefined && existing.urssafCategoryId === undefined) {
+        await microSettings.update(1, { urssafCategoryId: 'cat-micro-urssaf' })
+      }
+    })
   }
 }
 

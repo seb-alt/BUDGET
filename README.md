@@ -26,6 +26,7 @@ src/
   app/App.tsx           # coquille : navigation basse et bouton +
   features/
     dashboard/          # accueil : indicateurs, cartes budget, graphiques
+    micro/              # micro-entreprise : factures, clients, prévisionnel
     operations/         # saisie d'une opération, et liste complète
     patrimony/          # saisie manuelle des soldes
     settings/           # écran Paramètres
@@ -85,7 +86,7 @@ se met alors à jour au lieu d'être effacée.
 - [x] **Étape 5** — écran Paramètres
 - [ ] Export Excel (§12) — **décision en attente, voir plus bas**
 - [x] **Étape 7** — onglet Patrimoine
-- [ ] Onglet Micro (§9)
+- [x] **Étape 8** — onglet Micro-entreprise
 - [ ] Opérations récurrentes (§7)
 - [x] **Étape 6** — sauvegarde, restauration et exports CSV
 - [ ] PWA installable
@@ -118,6 +119,34 @@ deux formulaires n'auraient plus validé la même chose.
 `put`), en conservant son identifiant et sa date de création. C'est ce qui
 garantit qu'en transformant une dépense en transfert, l'ancienne catégorie
 disparaît vraiment de la base au lieu d'y rester.
+
+### Micro-entreprise (§9)
+
+Deux règles dont on ne verrait l'erreur qu'en se croyant plus riche qu'on ne l'est :
+
+**Les cotisations portent sur l'ENCAISSÉ, pas sur le facturé.** Une facture
+émise mais impayée ne provisionne rien : sinon l'application ferait mettre de
+côté de l'argent jamais reçu.
+
+**L'URSSAF ne se compte jamais deux fois.** Elle apparaît à deux endroits —
+provisionnée (calculée) et versée (une vraie dépense). Retrancher les deux du
+disponible ferait fondre celui-ci à chaque versement, alors que cet argent
+était déjà mis de côté :
+
+```
+disponible = encaissé - autresDépenses - max(provisionné ; payé)
+```
+
+**« En retard » ne se stocke pas.** Une facture devient en retard toute seule
+le jour où son échéance passe : enregistré, ce statut serait faux dès le
+lendemain. Le statut en base dit où tu en es de ton travail ; le retard se
+déduit de la date du jour.
+
+Les dépenses professionnelles sont des `transactions` ordinaires marquées
+`isMicro`, conformément au §14 — le bouton « + Dépense » ouvre l'écran de
+saisie habituel en mode professionnel. Les factures, elles, sont la source de
+vérité du chiffre d'affaires : rien n'est dupliqué en transactions, ce qui
+évite tout double compte.
 
 ### Patrimoine : versements contre performance (§8)
 

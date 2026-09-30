@@ -14,6 +14,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { resolveMonthBudget } from '../../db/budgets'
 import { db } from '../../db/db'
 import { needsBackupReminder } from '../../domain/backup/backupFile'
+import { computeMicroSummary } from '../../domain/micro/microSummary'
 import { applyFlexibleEnvelope } from '../../domain/budget/budgetEngine'
 import { computeMonthSummary } from '../../domain/budget/monthSummary'
 import { computeAccountBalances } from '../../domain/patrimony/accountBalance'
@@ -28,12 +29,14 @@ interface DashboardProps {
   onShowAllOperations: () => void
   onUpdateBalances: () => void
   onOpenSettings: () => void
+  onOpenMicro: () => void
 }
 
 export function Dashboard({
   onShowAllOperations,
   onUpdateBalances,
   onOpenSettings,
+  onOpenMicro,
 }: DashboardProps) {
   const [month, setMonth] = useState(currentMonth())
 
@@ -50,6 +53,8 @@ export function Dashboard({
   // Le solde du LEP se calcule sur TOUT l'historique, pas sur le mois affiché.
   const allTransactions = useLiveQuery(() => db.transactions.toArray(), [])
   const snapshots = useLiveQuery(() => db.patrimonySnapshots.toArray(), [])
+  const microSettings = useLiveQuery(() => db.microSettings.get(1), [])
+  const microInvoices = useLiveQuery(() => db.microInvoices.toArray(), [])
 
   /**
    * Les revenus personnels réellement encaissés ce mois-ci : c'est l'entrée de
@@ -108,6 +113,25 @@ export function Dashboard({
       )?.balance ?? 0
     )
   }, [settings, allTransactions, snapshots])
+
+  /**
+   * Résumé de la micro-entreprise (§4). Sur l'ANNÉE en cours et non sur le
+   * mois : les seuils et déclarations de la micro se raisonnent par année.
+   */
+  const micro = useMemo(() => {
+    const year = month.slice(0, 4)
+    return computeMicroSummary({
+      invoices: (microInvoices ?? []).filter((invoice) => invoice.issueDate.startsWith(year)),
+      expenses: (allTransactions ?? []).filter(
+        (transaction) =>
+          transaction.isMicro === true &&
+          transaction.type === 'expense' &&
+          transaction.date.startsWith(year),
+      ),
+      urssafCategoryId: microSettings?.urssafCategoryId ?? '',
+      urssafRate: microSettings?.urssafRate ?? 0,
+    })
+  }, [microInvoices, allTransactions, microSettings, month])
 
   const lastSnapshotDate = useMemo(
     () =>
@@ -334,6 +358,33 @@ export function Dashboard({
           </details>
         )
       })}
+
+      {/* Résumé Micro (§4) : une carte compacte, jamais mélangée au budget
+          personnel, avec un accès direct à son onglet. */}
+      <button type="button" className="dash-card dash-micro" onClick={onOpenMicro}>
+        <span className="dash-micro-head">
+          <span className="dash-card-title">Micro-entreprise · {month.slice(0, 4)}</span>
+          <span className="dash-micro-link">Ouvrir →</span>
+        </span>
+        <span className="dash-micro-grid">
+          <span>
+            <span className="dash-micro-label">CA encaissé</span>
+            <strong className="tabular">{formatEurosCompact(micro.collected)}</strong>
+          </span>
+          <span>
+            <span className="dash-micro-label">À recevoir</span>
+            <strong className="tabular">{formatEurosCompact(micro.awaiting)}</strong>
+          </span>
+          <span>
+            <span className="dash-micro-label">URSSAF provisionnée</span>
+            <strong className="tabular">{formatEurosCompact(micro.urssafProvisioned)}</strong>
+          </span>
+          <span>
+            <span className="dash-micro-label">Disponible estimé</span>
+            <strong className="tabular">{formatEurosCompact(micro.available)}</strong>
+          </span>
+        </span>
+      </button>
 
       <section className="dash-card dash-recent">
         <h2>Dernières opérations</h2>
