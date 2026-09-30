@@ -22,6 +22,7 @@ import { buildMonthlyWorkbook, workbookFileName } from '../../domain/export/mont
 import { currentMonth, formatMonthLabel } from '../../utils/date'
 import { downloadBinaryFile } from '../../utils/download'
 import { Field } from '../../components/ui/Field'
+import { MonthlyReportSheet } from '../report/MonthlyReportSheet'
 
 const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
@@ -51,6 +52,7 @@ export function ReportSection() {
   )
   const [chosen, setChosen] = useState<string>()
   const [busy, setBusy] = useState(false)
+  const [previewing, setPreviewing] = useState(false)
   const [error, setError] = useState<string>()
 
   const months = monthChoices(oldest)
@@ -71,9 +73,10 @@ export function ReportSection() {
   return (
     <div className="set-section">
       <p className="ui-field-hint">
-        Un classeur par mois : le résumé, toutes les opérations, le budget par catégorie, les
-        soldes de fin de mois, et les factures s'il y en a. Les montants sont de vrais nombres —
-        tu peux les additionner et les trier.
+        Deux façons de sortir un mois. Le <strong>classeur Excel</strong> pour calculer :
+        résumé, opérations, budget par catégorie, soldes de fin de mois, factures. Les montants
+        y sont de vrais nombres, additionnables et triables. Le <strong>rapport</strong> pour
+        lire et archiver : une page mise en forme, que ton navigateur enregistre en PDF.
       </p>
 
       <Field label="Mois">
@@ -98,6 +101,12 @@ export function ReportSection() {
       >
         {busy ? 'Préparation…' : 'Télécharger le classeur Excel'}
       </button>
+
+      <button type="button" className="set-outline" onClick={() => setPreviewing(true)}>
+        Voir le rapport et l'enregistrer en PDF
+      </button>
+
+      {previewing && <MonthlyReportSheet month={month} onClose={() => setPreviewing(false)} />}
     </div>
   )
 }

@@ -31,6 +31,7 @@ src/
     micro/              # micro-entreprise : factures, clients, prévisionnel
     operations/         # saisie d'une opération, et liste complète
     patrimony/          # saisie manuelle des soldes
+    report/             # le rapport d'un mois, à l'écran et à l'impression
     settings/           # écran Paramètres
   domain/
     backup/             # format de sauvegarde, validation, CSV
@@ -91,7 +92,7 @@ se met alors à jour au lieu d'être effacée.
 - [x] **Gel des budgets mensuels** — un mois révolu ne bouge plus (§11)
 - [x] **Étape 4** — moteur d'épargne flexible et répartition LEP / PEA
 - [x] **Étape 5** — écran Paramètres
-- [x] **Étape 12** — rapport mensuel en Excel (§12)
+- [x] **Étape 12** — rapport mensuel en Excel et en PDF (§12)
 - [x] **Étape 7** — onglet Patrimoine
 - [x] **Étape 8** — onglet Micro-entreprise
 - [x] **Étape 10** — opérations récurrentes (§7)
@@ -453,3 +454,39 @@ Au passage, l'ancienne palette échouait à ce dernier test : son orange et son
 ambre étaient trop proches pour être distingués, même avec une vision normale.
 
 **Ne pas changer ces valeurs sans relancer le validateur.**
+
+### Le rapport mensuel en PDF (§12)
+
+Même endroit : **Paramètres → Rapport mensuel → Voir le rapport**. Une page
+mise en forme, puis **Imprimer / PDF**.
+
+**Aucune bibliothèque PDF.** Le navigateur sait déjà fabriquer un PDF — c'est
+ce que fait « Imprimer → Enregistrer au format PDF », sur ordinateur comme sur
+téléphone. Passer par lui donne du texte sélectionnable et cherchable, à la
+bonne taille, sans ajouter plusieurs centaines de kilo-octets au
+téléchargement de l'application, et ça marche hors connexion puisque rien
+n'est chargé. La contrepartie est qu'il faut une vraie feuille de style
+d'impression : c'est `features/report/Report.css`, et c'est là que se joue la
+mise en page du PDF.
+
+**Le rapport est rendu dans un portail**, c'est-à-dire à côté de
+l'application dans le document, et non dedans. Raison : `window.print()`
+imprime toute la page ; pour n'imprimer que le rapport il faut pouvoir écarter
+tout le reste — or le reste est son parent, et cacher le parent cacherait
+aussi le rapport. Avec le portail, l'application entière disparaît d'un
+`display: none`, et le rapport se retrouve seul sur la feuille **dans le flux
+normal** : il se répartit donc correctement sur plusieurs pages, les en-têtes
+de tableau se répètent, et aucune ligne n'est coupée en deux.
+
+Ce `display: none` est conditionné à `body:has(.report-portal)`. Sans cette
+condition, un simple Ctrl+P n'importe où dans l'application imprimerait une
+page blanche.
+
+À l'impression, les couleurs sont forcées en clair quel que soit le thème de
+l'écran : imprimer un fond anthracite viderait une cartouche et rendrait le
+texte illisible. Un dépassement reste repérable même en noir et blanc, parce
+que c'est le gras qui porte l'information et la couleur qui la renforce.
+
+Sur un écran étroit, les colonnes secondaires disparaissent — le groupe d'une
+catégorie, la date d'émission d'une facture, le compte d'une opération. Jamais
+l'information principale, et jamais sur le papier ni dans le classeur Excel.
