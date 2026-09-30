@@ -249,6 +249,15 @@ renommer, de les réordonner et d'en supprimer. Une nouvelle catégorie apparaî
 aussitôt dans **Budget mensuel** avec son champ de montant, puis dans la saisie
 et sur la carte de son groupe.
 
+**Pour une enveloppe d'épargne** (groupe Épargne & investissement), l'application
+demande en plus **quels comptes elle alimente**. C'est indispensable : une
+enveloppe d'épargne ne se remplit pas de dépenses mais de virements. Sans compte
+rattaché, elle resterait à zéro.
+
+Un compte ne peut alimenter qu'**une seule** enveloppe — sinon le même virement
+serait compté deux fois. Un compte déjà pris apparaît grisé, avec le nom de
+l'enveloppe qui le détient. Pour le déplacer, décoche-le d'abord de l'ancienne.
+
 Une catégorie **déjà utilisée par des opérations ne peut pas être supprimée** —
 l'application te proposera de la **désactiver** à la place. C'est le bon geste :
 elle disparaît de la saisie, mais tes anciennes opérations gardent leur

@@ -115,6 +115,7 @@ elles ont été construites, pas dans celui du document.
 - [x] **Étape 15** — publication sur GitHub Pages et guide d'utilisation
 - [x] **Étape 16** — remplissage initial neutre, pour un dépôt publiable
 - [x] **Étape 17** — les prêts deviennent une liste (version 6)
+- [x] **Étape 18** — créer ses propres enveloppes d'épargne
 
 ### Graphiques
 
@@ -640,9 +641,8 @@ Deux garde-fous :
 - une catégorie **utilisée par des opérations ne peut pas être supprimée** ;
   le message propose de la désactiver, ce qui la retire de la saisie sans
   abîmer l'historique ;
-- on n'ajoute pas de catégorie au groupe **Épargne** : ces enveloppes sont
-  alimentées par des virements et doivent pointer vers des comptes précis
-  (`savingAccountIds`), ce qu'un simple nom ne suffit pas à décrire.
+- une enveloppe du groupe **Épargne** demande en plus les comptes qu'elle
+  alimente — voir ci-dessous.
 
 ### Les prêts deviennent une liste (version 6)
 
@@ -697,3 +697,37 @@ d'un mois passé affiche donc la dette d'AUJOURD'HUI, pas celle de ce mois-là.
 D'où la date portée dans le libellé — `Dettes restantes au 30/09/2026` dans le
 classeur, `capital revu le 15/09/2026` par prêt dans le PDF. Sans elle, on
 laisserait croire à un patrimoine net historique qui n'existe pas.
+
+### Créer ses propres enveloppes d'épargne
+
+Le groupe **Épargne** était le seul fermé à l'ajout, faute d'endroit où saisir
+ce qui le distingue : une enveloppe d'épargne ne se remplit pas de dépenses
+mais de **virements vers des comptes précis**. Sans cette liste, elle resterait
+à zéro pour toujours. Le formulaire d'ajout demande donc les comptes dès qu'on
+choisit ce groupe, et chaque enveloppe existante affiche les siens, modifiables.
+
+**Un compte ne peut alimenter qu'une seule enveloppe.** Sinon un virement de
+300 € vers le LEP serait compté dans les deux, et le groupe Épargne afficherait
+600 € — une erreur muette, sans message, juste un chiffre faux. Un compte déjà
+pris apparaît donc grisé, avec le nom de l'enveloppe qui le détient, et la
+couche `db/settings.ts` refuse le cas de toute façon.
+
+Deux finesses apprises en le construisant :
+
+**« Au moins un compte » ne vaut qu'à la création.** L'imposer aussi à la
+modification créait une impasse : déplacer l'unique compte d'une enveloppe vers
+une autre devenait impossible, puisqu'il aurait fallu le retirer d'abord. Une
+enveloppe sans compte n'est pas incohérente, seulement inutile — l'écran
+l'annonce (« ⚠ Aucun compte : cette enveloppe restera à zéro ») au lieu de
+l'interdire.
+
+**Les cases à cocher gardent une copie locale du choix.** Pilotées par la seule
+base, elles revenaient à leur état d'avant pendant l'écriture — asynchrone —
+puis se recalaient : un battement visible, et une case qui semble refuser le
+clic quand on enchaîne vite. Le choix est donc retenu tout de suite et oublié
+dès que la base répond ; en cas de refus, la base reprend la main avec son
+message.
+
+Une enveloppe d'épargne n'est pas proposée parmi les boutons d'accès rapide de
+la saisie : elle se remplit par virement, la proposer comme catégorie de
+dépense induirait en erreur.

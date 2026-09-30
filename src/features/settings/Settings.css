@@ -451,3 +451,48 @@
   background: var(--neutral-soft);
   color: var(--text-faint);
 }
+
+/* --- Comptes d'une enveloppe d'épargne ----------------------------------
+   Des cases à cocher plutôt qu'une liste déroulante multiple : sur un
+   téléphone, une liste à sélection multiple se manipule mal et cache ce qui
+   est coché. */
+
+.set-saving-accounts {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.set-saving-accounts label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.set-saving-accounts input {
+  width: 1.125rem;
+  height: 1.125rem;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* Un compte déjà pris par une autre enveloppe : visible, mais pas choisissable.
+   Le masquer laisserait croire qu'il n'existe pas. */
+.set-saving-accounts label.is-taken {
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+
+.set-saving-accounts label.is-taken input {
+  cursor: not-allowed;
+}
+
+.set-saving-accounts em {
+  font-style: normal;
+  font-size: 0.75rem;
+}
