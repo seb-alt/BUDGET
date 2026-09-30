@@ -58,6 +58,7 @@ src/
     transactions.ts     # écriture et validation des opérations
     budgets.ts          # quel budget s'applique à quel mois
     recurring.ts        # règles récurrentes : application et confirmation
+    loans.ts            # prêts : création, modification, suppression
     monthlyReport.ts    # tout ce qu'il faut savoir sur un mois, en une fois
   assets/               # la police Inter, embarquée dans l'application
   utils/                # dates, montants
@@ -113,6 +114,7 @@ elles ont été construites, pas dans celui du document.
 - [x] **Étape 14** — bascule clair / sombre
 - [x] **Étape 15** — publication sur GitHub Pages et guide d'utilisation
 - [x] **Étape 16** — remplissage initial neutre, pour un dépôt publiable
+- [x] **Étape 17** — les prêts deviennent une liste (version 6)
 
 ### Graphiques
 
@@ -551,9 +553,21 @@ franchement ambigu à côté d'un bouton de thème qui en affiche un pour de bon
 ### Publication
 
 `.github/workflows/deploy.yml` construit et publie sur GitHub Pages à chaque
-poussée sur `main`. Rien n'est publié tant que **Settings → Pages → Source :
-GitHub Actions** n'a pas été choisi dans le dépôt ; d'ici là le workflow échoue
-sans conséquence.
+poussée sur `main`.
+
+**L'ordre compte.** `Settings → Pages → Source : GitHub Actions` doit être posé
+AVANT la première publication. Sinon la construction se lance, réussit, puis
+échoue à l'étape `configure-pages` avec « Get Pages site failed » : il n'y a
+pas de site où déposer le résultat. Le réglage, puis *Run workflow* depuis
+l'onglet Actions, suffit — rien à corriger dans le code.
+
+L'action sait activer Pages elle-même (paramètre `enablement`), mais cela exige
+un jeton d'accès personnel à créer et à ranger dans les secrets du dépôt : plus
+de travail que le réglage lui-même, et un secret de plus à surveiller.
+
+GitHub Pages n'est gratuit que sur un dépôt **public** ; sur un dépôt privé, il
+faut un compte payant. C'est la raison pour laquelle le remplissage initial ne
+contient plus aucune valeur personnelle (voir plus bas).
 
 Les contrôles passent **avant** la publication — lint, types, tests. Une
 version cassée ne doit jamais atteindre un téléphone.
@@ -629,3 +643,57 @@ Deux garde-fous :
 - on n'ajoute pas de catégorie au groupe **Épargne** : ces enveloppes sont
   alimentées par des virements et doivent pointer vers des comptes précis
   (`savingAccountIds`), ce qu'un simple nom ne suffit pas à décrire.
+
+### Les prêts deviennent une liste (version 6)
+
+Les réglages contenaient un champ `studentLoan` : **un** prêt, sans nom, qu'on
+ne pouvait ni ajouter ni supprimer. Une dette n'est pas un réglage — on en
+contracte, on en solde, on en a parfois plusieurs. C'est donc une table, avec
+sa section **Paramètres → Prêts**.
+
+Trois décisions valent d'être expliquées.
+
+**Un prêt n'est relié à aucune opération.** La mensualité payée chaque mois
+appartient à sa catégorie budgétaire ; le prêt, lui, répond à « combien je dois
+encore ». Deux questions différentes, deux objets différents — et c'est
+précisément ce qui rend la suppression d'un prêt sans danger pour
+l'historique, là où une catégorie utilisée est protégée.
+
+**Le capital restant dû se saisit à la main.** L'application pourrait le
+décrémenter de la mensualité chaque mois, mais elle mentirait : une mensualité
+paie d'abord des intérêts, et la part de capital remboursée varie à chaque
+échéance. Mieux vaut un chiffre recopié du relevé deux fois par an qu'un
+chiffre faux tous les mois.
+
+**Un prêt hérité entièrement à zéro n'est pas converti.** Depuis que le
+remplissage initial est neutre, tout le monde part avec un `studentLoan` à
+zéro ; le convertir créerait chez chacun une ligne vide surgie de nulle part,
+à supprimer à la main sans comprendre pourquoi.
+
+Comme pour le renommage des identifiants, la conversion vit dans
+`domain/migration/extractLoans.ts`, pure et testée, parce qu'elle sert **aux
+deux endroits** : la migration de la base, et la restauration d'une sauvegarde
+antérieure — qui n'écrit que des lignes et ne rejoue aucune migration.
+`upgradeBackupData` enchaîne désormais les conversions de la plus ancienne à la
+plus récente, exactement comme Dexie enchaîne ses migrations.
+
+Sans prêt saisi, la carte du patrimoine disparaît entièrement, ligne de
+patrimoine net comprise : une carte « 0 € de dette » n'apprendrait rien et
+occuperait l'écran.
+
+Vérifié dans un navigateur : migration d'une base en version 5 contenant un
+prêt, ajout d'un second, modification, garde-fous de saisie, déduction des deux
+dettes du patrimoine net, suppression sans effet sur les opérations, et
+disparition de la carte quand il n'en reste aucun.
+
+**Les prêts sont aussi dans le rapport mensuel** — une feuille `Prêts` dans le
+classeur (conditionnelle, comme `Factures`), et un prolongement du tableau du
+patrimoine dans le PDF. Sans cela, l'écran aurait déduit les dettes et pas
+l'export : exactement la divergence que ce projet s'interdit.
+
+Une honnêteté nécessaire là-dessus : **un capital restant dû n'a pas
+d'historique mensuel.** C'est un chiffre courant, saisi à la main. Le rapport
+d'un mois passé affiche donc la dette d'AUJOURD'HUI, pas celle de ce mois-là.
+D'où la date portée dans le libellé — `Dettes restantes au 30/09/2026` dans le
+classeur, `capital revu le 15/09/2026` par prêt dans le PDF. Sans elle, on
+laisserait croire à un patrimoine net historique qui n'existe pas.

@@ -1,7 +1,10 @@
 /**
  * src/features/settings/SavingsSection.tsx
  *
- * Les réglages qui pilotent le moteur d'épargne, et le prêt étudiant.
+ * Les réglages qui pilotent le moteur d'épargne.
+ *
+ * Les prêts ont leur propre section : une dette n'est pas un réglage, on en
+ * contracte et on en solde.
  *
  * Le seuil LEP n'est pas écrit en dur dans le code : si le plafond
  * réglementaire change, tu le mets à jour ici et toute la répartition suit.
@@ -12,7 +15,6 @@ import { AmountField } from '../../components/ui/AmountField'
 import { updateSavingsSettings } from '../../db/settings'
 import type { Settings } from '../../db/types'
 import { fromCents, parseBalanceInput } from '../../utils/money'
-import { today } from '../../utils/date'
 
 const toInput = (cents: number) => String(fromCents(cents)).replace('.', ',')
 
@@ -24,13 +26,10 @@ interface SavingsSectionProps {
 export function SavingsSection({ settings, onSaved }: SavingsSectionProps) {
   const [threshold, setThreshold] = useState(toInput(settings.lepThreshold))
   const [assuranceVie, setAssuranceVie] = useState(toInput(settings.assuranceVieMonthly))
-  const [loanInitial, setLoanInitial] = useState(toInput(settings.studentLoan.initialAmount))
-  const [loanMonthly, setLoanMonthly] = useState(toInput(settings.studentLoan.monthlyPayment))
-  const [loanRemaining, setLoanRemaining] = useState(toInput(settings.studentLoan.remainingCapital))
   const [error, setError] = useState<string>()
   const [isSaving, setIsSaving] = useState(false)
 
-  const fields = [threshold, assuranceVie, loanInitial, loanMonthly, loanRemaining]
+  const fields = [threshold, assuranceVie]
   const hasInvalid = fields.some((field) => parseBalanceInput(field) === null)
 
   async function handleSave() {
@@ -45,12 +44,6 @@ export function SavingsSection({ settings, onSaved }: SavingsSectionProps) {
       await updateSavingsSettings({
         lepThreshold: parseBalanceInput(threshold)!,
         assuranceVieMonthly: parseBalanceInput(assuranceVie)!,
-        studentLoan: {
-          initialAmount: parseBalanceInput(loanInitial)!,
-          monthlyPayment: parseBalanceInput(loanMonthly)!,
-          remainingCapital: parseBalanceInput(loanRemaining)!,
-          lastUpdated: today(),
-        },
       })
       onSaved('Réglages d’épargne enregistrés.')
     } catch (cause) {
@@ -79,32 +72,14 @@ export function SavingsSection({ settings, onSaved }: SavingsSectionProps) {
         />
       </div>
 
-      <h3 className="set-subtitle">Prêt étudiant</h3>
-      <div className="set-grid">
-        <AmountField
-          label="Montant initial"
-          value={loanInitial}
-          invalid={parseBalanceInput(loanInitial) === null}
-          onChange={setLoanInitial}
-        />
-        <AmountField
-          label="Mensualité"
-          value={loanMonthly}
-          invalid={parseBalanceInput(loanMonthly) === null}
-          onChange={setLoanMonthly}
-        />
-        <AmountField
-          label="Capital restant dû"
-          value={loanRemaining}
-          invalid={parseBalanceInput(loanRemaining) === null}
-          onChange={setLoanRemaining}
-          hint="À recaler de temps en temps depuis ton relevé de prêt."
-        />
-      </div>
-
       {error !== undefined && <p className="set-error">{error}</p>}
 
-      <button type="button" className="set-save" disabled={isSaving} onClick={() => void handleSave()}>
+      <button
+        type="button"
+        className="set-save"
+        disabled={isSaving}
+        onClick={() => void handleSave()}
+      >
         {isSaving ? 'Enregistrement…' : 'Enregistrer'}
       </button>
     </div>

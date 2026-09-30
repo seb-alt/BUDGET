@@ -404,3 +404,50 @@
   color: var(--text-muted);
   text-decoration: line-through;
 }
+
+/* --- Formulaire posé dans la section, sans panneau par-dessus -------------
+   Un prêt a quatre champs : ouvrir un panneau plein écran pour si peu ferait
+   perdre de vue la liste à laquelle il s'ajoute. */
+
+.set-inline-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+
+.set-inline-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.set-inline-actions button {
+  appearance: none;
+  flex: 1;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: 0.9375rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* Le bouton principal garde son aplat orange : la règle générique ci-dessus,
+   plus spécifique que `.set-save`, le lui retirait. */
+.set-inline-actions .set-save {
+  flex: 2;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.set-inline-actions .set-save:disabled {
+  border-color: var(--neutral-soft);
+  background: var(--neutral-soft);
+  color: var(--text-faint);
+}

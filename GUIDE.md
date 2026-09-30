@@ -42,32 +42,35 @@ Tout le reste est du confort. Ça, non.
 Pour installer une application web sur un téléphone, il lui faut une adresse.
 Le code est sur GitHub ; il suffit de demander à GitHub de le servir.
 
-1. **Fusionne le travail dans la branche `main`.** Tout a été développé sur une
-   branche à part ; la publication ne se déclenche que depuis `main`. Sur
-   GitHub : onglet **Pull requests** → **New pull request** → de la branche
-   `claude/new-session-hc8u08` vers `main` → **Merge**.
-2. Va sur ton dépôt : **github.com/seb-alt/BUDGET**
-3. Onglet **Settings** (Réglages), puis **Pages** dans la colonne de gauche
-4. Sous **Source**, choisis **GitHub Actions**
-5. C'est tout. À chaque fois que le code changera, le site se reconstruira tout
-   seul.
+**L'ordre compte.** Le réglage de Pages doit être posé AVANT la première
+publication : sinon la construction se lance, réussit… et échoue à la dernière
+étape avec « Get Pages site failed », faute de site où déposer le résultat.
 
-Tu peux suivre la construction dans l'onglet **Actions** : une coche verte veut
-dire que le site est en ligne. Elle prend deux à trois minutes.
+1. **Rends le dépôt public.** Settings → General → tout en bas, *Danger Zone* →
+   *Change repository visibility* → **Public**. GitHub Pages n'est gratuit que
+   sur un dépôt public ; sur un dépôt privé, il faut un compte payant.
+2. **Active Pages.** Settings → **Pages** → sous *Source*, choisis
+   **GitHub Actions**. Rien d'autre à régler.
+3. **Fusionne le travail dans `main`.** Tout a été développé sur une branche à
+   part, et la publication ne se déclenche que depuis `main`. Onglet
+   **Pull requests** → **New pull request** → de `claude/new-session-hc8u08`
+   vers `main` → **Merge**.
+4. **Regarde l'onglet Actions.** Une coche verte veut dire que le site est en
+   ligne. Compte deux à trois minutes.
 
-Après quelques minutes, ton application est à l'adresse :
+Après ça, ton application est à l'adresse :
 
 ```
 https://seb-alt.github.io/BUDGET/
 ```
 
+> **Si la publication a déjà échoué** parce que l'étape 2 est venue trop tard :
+> pose le réglage, puis onglet **Actions** → *Publier sur GitHub Pages* →
+> bouton **Run workflow**. Rien à corriger dans le code.
+
 **Ce qui est publié, c'est le CODE de l'application, pas tes données.** N'importe
 qui avec ce lien obtiendrait une application *vide*, la sienne. Tes chiffres ne
 sont sur aucun serveur — ils sont dans ton téléphone.
-
-> Si tu préfères que même le code reste privé, dis-le-moi : on peut le servir
-> depuis un hébergement privé. Mais ce n'est pas nécessaire pour la
-> confidentialité de tes données.
 
 ### Sur iPhone (Safari)
 
@@ -207,12 +210,37 @@ Le soleil ou la lune bascule entre clair et sombre. L'engrenage ouvre les
 | **Apparence** | Automatique (suit ton téléphone), Clair ou Sombre |
 | **Budget mensuel** | le montant alloué à chaque catégorie |
 | **Épargne et prêt** | assurance-vie mensuelle, plafond du LEP |
+| **Prêts** | tes emprunts en cours |
 | **Catégories** | créer, renommer, réordonner, désactiver, supprimer |
 | **Comptes** | tes comptes bancaires et placements |
 | **Opérations récurrentes** | loyer, abonnements, prêt étudiant |
 | **Micro-entreprise** | taux URSSAF, délai de paiement, numérotation |
 | **Rapport mensuel** | **les exports Excel et PDF** |
 | **Sauvegarde** | **la sauvegarde complète** |
+
+### Tes prêts
+
+**Paramètres → Prêts** : ajoutes-en autant que tu veux, modifie-les, supprime-les.
+Chacun a un nom, un montant emprunté, une mensualité et un capital restant dû.
+
+Ils apparaissent alors dans l'onglet **Patrimoine**, avec une barre de
+progression, et se déduisent de ton **patrimoine net**. Si tu n'en saisis
+aucun, la carte n'apparaît pas du tout.
+
+**Le capital restant dû, c'est toi qui le mets à jour.** L'application pourrait
+le diminuer toute seule chaque mois, mais elle te mentirait : une mensualité
+paie d'abord des intérêts, et la part qui rembourse vraiment le capital change
+à chaque échéance. Recopie le chiffre de ton relevé de prêt deux fois par an,
+c'est plus juste. La date de ta dernière mise à jour est affichée à côté.
+
+Supprimer un prêt **ne touche pas à tes opérations** : tes remboursements
+appartiennent à leur catégorie budgétaire, pas au prêt.
+
+Tes prêts apparaissent aussi dans le **rapport mensuel**, Excel et PDF, avec le
+patrimoine net. Un point à connaître : le capital restant dû n'a pas
+d'historique mois par mois — c'est un chiffre courant que tu maintiens. Le
+rapport d'un mois passé affiche donc ta dette **d'aujourd'hui**, et il le dit :
+« Dettes restantes au 30/09/2026 ».
 
 ### Faire évoluer tes catégories
 
@@ -333,6 +361,7 @@ installe l'application sur le nouveau, restaure.
 | Opérations | toutes les opérations, ligne par ligne |
 | Budget | prévu / dépensé / reste, par catégorie |
 | Comptes | les soldes à la fin du mois |
+| Prêts | tes emprunts, s'il y en a |
 | Factures | les factures du mois, s'il y en a |
 
 Les montants sont de **vrais nombres**, pas du texte : tu peux additionner,

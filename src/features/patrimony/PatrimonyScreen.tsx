@@ -44,7 +44,12 @@ const RANGE_OPTIONS: { value: Range; label: string }[] = [
   { value: 'tout', label: 'Tout' },
 ]
 
-const RANGE_MONTHS: Record<Exclude<Range, 'tout'>, number> = { '6m': 6, '1a': 12, '3a': 36, '5a': 60 }
+const RANGE_MONTHS: Record<Exclude<Range, 'tout'>, number> = {
+  '6m': 6,
+  '1a': 12,
+  '3a': 36,
+  '5a': 60,
+}
 
 /** Une couleur par compte, dans l'ordre d'affichage. Palette vérifiée. */
 const ACCOUNT_COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)']
@@ -62,13 +67,17 @@ export function PatrimonyScreen({ onUpdateBalances }: PatrimonyScreenProps) {
   const transactions = useLiveQuery(() => db.transactions.toArray(), [])
   const snapshots = useLiveQuery(() => db.patrimonySnapshots.toArray(), [])
   const settings = useLiveQuery(() => db.settings.get(1), [])
+  const loans = useLiveQuery(() => db.loans.orderBy('order').toArray(), [])
 
   /** Le patrimoine, c'est tout sauf la micro-entreprise, qui a son onglet. */
   const wealthAccounts = useMemo(
     () => (accounts ?? []).filter((account) => account.active && account.kind !== 'micro'),
     [accounts],
   )
-  const accountIds = useMemo(() => wealthAccounts.map((account) => account.id), [wealthAccounts])
+  const accountIds = useMemo(
+    () => wealthAccounts.map((account) => account.id),
+    [wealthAccounts],
+  )
 
   /** Les comptes de placement : ce sont les seuls dont la valeur peut varier seule. */
   const investmentIds = useMemo(
@@ -100,7 +109,8 @@ export function PatrimonyScreen({ onUpdateBalances }: PatrimonyScreenProps) {
   )
 
   const series = useMemo(() => {
-    if (transactions === undefined || snapshots === undefined || accountIds.length === 0) return []
+    if (transactions === undefined || snapshots === undefined || accountIds.length === 0)
+      return []
 
     const dated = [
       ...transactions.map((transaction) => transaction.date),
@@ -160,7 +170,9 @@ export function PatrimonyScreen({ onUpdateBalances }: PatrimonyScreenProps) {
   }, [investmentIds, transactions, snapshots])
 
   const years = useMemo(() => {
-    const recorded = (transactions ?? []).map((transaction) => Number(transaction.date.slice(0, 4)))
+    const recorded = (transactions ?? []).map((transaction) =>
+      Number(transaction.date.slice(0, 4)),
+    )
     if (recorded.length === 0) return []
     const first = Math.min(...recorded)
     const last = Number(today().slice(0, 4))
@@ -168,7 +180,14 @@ export function PatrimonyScreen({ onUpdateBalances }: PatrimonyScreenProps) {
   }, [transactions])
 
   const yearly = useMemo(
-    () => buildYearlySummaries(years, savingsIds, investmentIds, transactions ?? [], snapshots ?? []),
+    () =>
+      buildYearlySummaries(
+        years,
+        savingsIds,
+        investmentIds,
+        transactions ?? [],
+        snapshots ?? [],
+      ),
     [years, savingsIds, investmentIds, transactions, snapshots],
   )
 
@@ -177,11 +196,12 @@ export function PatrimonyScreen({ onUpdateBalances }: PatrimonyScreenProps) {
     [snapshots],
   )
 
-  if (!accounts || !transactions || !snapshots || !settings) {
+  if (!accounts || !transactions || !snapshots || !settings || !loans) {
     return <p className="pat-loading">Chargement…</p>
   }
 
-  const loan = settings.studentLoan
+  const totalDebt = loans.reduce((sum, loan) => sum + loan.remainingCapital, 0)
+
   const hasSnapshots = snapshots.length > 0
 
   return (
@@ -214,9 +234,8 @@ export function PatrimonyScreen({ onUpdateBalances }: PatrimonyScreenProps) {
            la performance vaut zéro serait vrai mais trompeur si on ne précise
            pas pourquoi. */
         <button type="button" className="pat-notice" onClick={onUpdateBalances}>
-          Aucun relevé de soldes saisi : les montants ci-dessus ne reflètent que tes
-          opérations enregistrées, et la valorisation ne peut pas être calculée.
-          Saisir mes soldes →
+          Aucun relevé de soldes saisi : les montants ci-dessus ne reflètent que tes opérations
+          enregistrées, et la valorisation ne peut pas être calculée. Saisir mes soldes →
         </button>
       )}
 
@@ -258,8 +277,8 @@ export function PatrimonyScreen({ onUpdateBalances }: PatrimonyScreenProps) {
       <section className="pat-card">
         <h2>Versements et performance</h2>
         <p className="pat-subtitle">
-          Ce que tu as mis de ta poche chaque année, et ce que tes placements ont gagné ou
-          perdu par-dessus.
+          Ce que tu as mis de ta poche chaque année, et ce que tes placements ont gagné ou perdu
+          par-dessus.
         </p>
         <GroupedBarChart
           groups={yearly.map((summary) => ({
@@ -284,13 +303,15 @@ export function PatrimonyScreen({ onUpdateBalances }: PatrimonyScreenProps) {
               account={account}
               color={ACCOUNT_COLORS[index % ACCOUNT_COLORS.length]}
               balance={balances.get(account.id)?.balance ?? 0}
-              contributedThisMonth={splitContributionAndPerformance(
-                [account.id],
-                transactions,
-                snapshots,
-                `${currentMonth()}-01`,
-                lastDayOfMonth(currentMonth()),
-              ).contributions}
+              contributedThisMonth={
+                splitContributionAndPerformance(
+                  [account.id],
+                  transactions,
+                  snapshots,
+                  `${currentMonth()}-01`,
+                  lastDayOfMonth(currentMonth()),
+                ).contributions
+              }
             />
           ))}
         </ul>
@@ -301,47 +322,43 @@ export function PatrimonyScreen({ onUpdateBalances }: PatrimonyScreenProps) {
         </button>
       </section>
 
-      <section className="pat-card">
-        <h2>Prêt étudiant</h2>
-        <div className="pat-loan">
-          <div className="pat-loan-head">
-            <span>Capital restant dû</span>
-            <strong className="tabular">{formatEurosCompact(loan.remainingCapital)}</strong>
-          </div>
-          <div
-            className="dash-bar pat-loan-bar"
-            role="img"
-            aria-label={`Prêt remboursé à ${Math.round(
-              loan.initialAmount > 0
-                ? (1 - loan.remainingCapital / loan.initialAmount) * 100
-                : 0,
-            )} %`}
-          >
-            <div
-              className="dash-bar-fill"
-              style={{
-                width: `${
-                  loan.initialAmount > 0
-                    ? Math.max(0, Math.min(1, 1 - loan.remainingCapital / loan.initialAmount)) * 100
-                    : 0
-                }%`,
-              }}
-            />
-          </div>
-          <p className="pat-loan-note">
-            Remboursé : {formatEurosCompact(Math.max(0, loan.initialAmount - loan.remainingCapital))}{' '}
-            sur {formatEurosCompact(loan.initialAmount)} · {formatEurosCompact(loan.monthlyPayment)} par
-            mois
-          </p>
-        </div>
+      {/* Sans prêt saisi, cette carte n'a rien à dire : on ne l'affiche pas.
+          Une carte « 0 € de dette » n'apprendrait rien et occuperait l'écran. */}
+      {loans.length > 0 && (
+        <section className="pat-card">
+          <h2>{loans.length === 1 ? 'Prêt' : 'Prêts'}</h2>
 
-        {/* Le patrimoine net arrive APRÈS, et en petit : c'est une information
-            utile, pas celle qu'on vient chercher chaque semaine. */}
-        <p className="pat-net">
-          Patrimoine net, dette déduite :{' '}
-          <strong className="tabular">{formatEurosCompact(total - loan.remainingCapital)}</strong>
-        </p>
-      </section>
+          {loans.map((loan) => (
+            <div className="pat-loan" key={loan.id}>
+              <div className="pat-loan-head">
+                <span>{loan.name}</span>
+                <strong className="tabular">{formatEurosCompact(loan.remainingCapital)}</strong>
+              </div>
+              <div
+                className="dash-bar pat-loan-bar"
+                role="img"
+                aria-label={`${loan.name} remboursé à ${repaidPercent(loan)} %`}
+              >
+                <div className="dash-bar-fill" style={{ width: `${repaidPercent(loan)}%` }} />
+              </div>
+              <p className="pat-loan-note">
+                Remboursé :{' '}
+                {formatEurosCompact(Math.max(0, loan.initialAmount - loan.remainingCapital))}{' '}
+                sur {formatEurosCompact(loan.initialAmount)}
+                {loan.monthlyPayment > 0 &&
+                  ` · ${formatEurosCompact(loan.monthlyPayment)} par mois`}
+              </p>
+            </div>
+          ))}
+
+          {/* Le patrimoine net arrive APRÈS, et en petit : c'est une information
+              utile, pas celle qu'on vient chercher chaque semaine. */}
+          <p className="pat-net">
+            Patrimoine net, {loans.length === 1 ? 'dette déduite' : 'dettes déduites'} :{' '}
+            <strong className="tabular">{formatEurosCompact(total - totalDebt)}</strong>
+          </p>
+        </section>
+      )}
     </div>
   )
 }
@@ -419,4 +436,17 @@ function AccountRow({
       )}
     </li>
   )
+}
+
+/**
+ * Part remboursée, en pourcentage entier.
+ *
+ * Bornée entre 0 et 100 : un capital restant dû supérieur au montant emprunté
+ * — possible avec des intérêts capitalisés — donnerait sinon une barre
+ * négative, et une barre soldée au-delà de 100 déborderait de son cadre.
+ */
+function repaidPercent(loan: { initialAmount: number; remainingCapital: number }): number {
+  if (loan.initialAmount <= 0) return 0
+  const repaid = 1 - loan.remainingCapital / loan.initialAmount
+  return Math.round(Math.max(0, Math.min(1, repaid)) * 100)
 }
