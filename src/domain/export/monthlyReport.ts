@@ -48,6 +48,14 @@ export interface ReportAccount {
   since?: IsoDate
 }
 
+export interface ReportLoan {
+  name: string
+  initialAmount: Cents
+  monthlyPayment: Cents
+  remainingCapital: Cents
+  lastUpdated: IsoDate
+}
+
 export interface ReportInvoice {
   number: string
   client: string
@@ -76,6 +84,11 @@ export interface MonthlyReport {
   operations: ReportOperation[]
   accounts: ReportAccount[]
   patrimony: Cents
+  loans: ReportLoan[]
+  /** Somme des capitaux restant dus. Zéro s'il n'y a aucun prêt. */
+  debt: Cents
+  /** Patrimoine moins les dettes — le chiffre que montre l'onglet Patrimoine. */
+  netWorth: Cents
 
   micro?: {
     collected: Cents
@@ -108,9 +121,23 @@ function summarySheet(report: MonthlyReport): SheetSpec {
     ['Loisirs restants', euros(report.leisureRemaining)],
     [],
     ['Patrimoine à la fin du mois', euros(report.patrimony)],
-    [],
-    ['Groupe', 'Budget', 'Dépensé', 'Reste'],
   ]
+
+  // Sans prêt, deux lignes à zéro n'apprendraient rien : on les tait.
+  //
+  // La DATE dans le libellé n'est pas un ornement. Un capital restant dû n'a
+  // pas d'historique mensuel : c'est un chiffre courant, saisi à la main. Le
+  // rapport d'un mois passé affiche donc la dette d'AUJOURD'HUI, pas celle de
+  // ce mois-là. Sans le dire, on laisserait croire à un patrimoine net
+  // historique qui n'existe pas.
+  if (report.loans.length > 0) {
+    rows.push(
+      [`Dettes restantes au ${frenchDate(report.generatedAt)}`, euros(report.debt)],
+      ['Patrimoine net, dettes déduites', euros(report.netWorth)],
+    )
+  }
+
+  rows.push([], ['Groupe', 'Budget', 'Dépensé', 'Reste'])
 
   // Les trois colonnes de droite ne servent qu'au tableau des groupes, plus
   // bas : les lignes du haut n'en utilisent que deux.
@@ -211,6 +238,38 @@ function accountsSheet(report: MonthlyReport): SheetSpec {
   }
 }
 
+/**
+ * Les prêts, dans leur propre feuille.
+ *
+ * Pas dans la feuille Comptes : un compte et une dette ne se lisent pas de la
+ * même façon, et les mélanger obligerait à écrire les prêts en négatif pour
+ * que la colonne reste sommable. Une feuille séparée, qui n'apparaît que s'il
+ * y a des prêts — exactement comme la feuille Factures.
+ */
+function loansSheet(report: MonthlyReport): SheetSpec | undefined {
+  if (report.loans.length === 0) return undefined
+
+  return {
+    name: 'Prêts',
+    columns: [
+      { header: 'Prêt', width: 24 },
+      { header: 'Capital restant dû', width: 18, format: 'euro' },
+      { header: 'Emprunté', width: 14, format: 'euro' },
+      { header: 'Remboursé', width: 14, format: 'euro' },
+      { header: 'Mensualité', width: 14, format: 'euro' },
+      { header: 'Capital revu le', width: 16, format: 'date' },
+    ],
+    rows: report.loans.map((loan) => [
+      loan.name,
+      euros(loan.remainingCapital),
+      euros(loan.initialAmount),
+      euros(Math.max(0, loan.initialAmount - loan.remainingCapital)),
+      loan.monthlyPayment === 0 ? null : euros(loan.monthlyPayment),
+      loan.lastUpdated,
+    ]),
+  }
+}
+
 function invoicesSheet(report: MonthlyReport): SheetSpec | undefined {
   const invoices = report.micro?.invoices ?? []
   if (invoices.length === 0) return undefined
@@ -246,6 +305,7 @@ export function buildMonthlyWorkbook(report: MonthlyReport, now = new Date()): U
     operationsSheet(report),
     budgetSheet(report),
     accountsSheet(report),
+    loansSheet(report),
     invoicesSheet(report),
   ].filter((sheet): sheet is SheetSpec => sheet !== undefined)
 

@@ -236,6 +236,12 @@ c'est plus juste. La date de ta dernière mise à jour est affichée à côté.
 Supprimer un prêt **ne touche pas à tes opérations** : tes remboursements
 appartiennent à leur catégorie budgétaire, pas au prêt.
 
+Tes prêts apparaissent aussi dans le **rapport mensuel**, Excel et PDF, avec le
+patrimoine net. Un point à connaître : le capital restant dû n'a pas
+d'historique mois par mois — c'est un chiffre courant que tu maintiens. Le
+rapport d'un mois passé affiche donc ta dette **d'aujourd'hui**, et il le dit :
+« Dettes restantes au 30/09/2026 ».
+
 ### Faire évoluer tes catégories
 
 Tes besoins changeront. **Paramètres → Catégories** permet d'en ajouter, d'en
@@ -355,6 +361,7 @@ installe l'application sur le nouveau, restaure.
 | Opérations | toutes les opérations, ligne par ligne |
 | Budget | prévu / dépensé / reste, par catégorie |
 | Comptes | les soldes à la fin du mois |
+| Prêts | tes emprunts, s'il y en a |
 | Factures | les factures du mois, s'il y en a |
 
 Les montants sont de **vrais nombres**, pas du texte : tu peux additionner,

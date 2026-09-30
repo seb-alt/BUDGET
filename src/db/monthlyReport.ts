@@ -74,7 +74,7 @@ function signedAmount(transaction: Transaction): number {
 }
 
 export async function buildMonthlyReport(month: IsoMonth): Promise<MonthlyReport> {
-  const [accounts, categories, allTransactions, snapshots, settings, budget] =
+  const [accounts, categories, allTransactions, snapshots, settings, budget, loans] =
     await Promise.all([
       db.accounts.toArray(),
       db.categories.orderBy('[group+order]').toArray(),
@@ -82,6 +82,7 @@ export async function buildMonthlyReport(month: IsoMonth): Promise<MonthlyReport
       db.patrimonySnapshots.toArray(),
       db.settings.get(1),
       resolveMonthBudget(month),
+      db.loans.orderBy('order').toArray(),
     ])
 
   if (settings === undefined) throw new Error('Les réglages sont introuvables.')
@@ -177,6 +178,7 @@ export async function buildMonthlyReport(month: IsoMonth): Promise<MonthlyReport
     })
 
   const patrimony = reportAccounts.reduce((total, account) => total + account.balance, 0)
+  const debt = loans.reduce((total, loan) => total + loan.remainingCapital, 0)
 
   const report: MonthlyReport = {
     month,
@@ -197,6 +199,15 @@ export async function buildMonthlyReport(month: IsoMonth): Promise<MonthlyReport
     operations,
     accounts: reportAccounts,
     patrimony,
+    loans: loans.map((loan) => ({
+      name: loan.name,
+      initialAmount: loan.initialAmount,
+      monthlyPayment: loan.monthlyPayment,
+      remainingCapital: loan.remainingCapital,
+      lastUpdated: loan.lastUpdated,
+    })),
+    debt,
+    netWorth: patrimony - debt,
   }
 
   const microSettings = await db.microSettings.get(1)

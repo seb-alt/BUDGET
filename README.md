@@ -685,3 +685,15 @@ Vérifié dans un navigateur : migration d'une base en version 5 contenant un
 prêt, ajout d'un second, modification, garde-fous de saisie, déduction des deux
 dettes du patrimoine net, suppression sans effet sur les opérations, et
 disparition de la carte quand il n'en reste aucun.
+
+**Les prêts sont aussi dans le rapport mensuel** — une feuille `Prêts` dans le
+classeur (conditionnelle, comme `Factures`), et un prolongement du tableau du
+patrimoine dans le PDF. Sans cela, l'écran aurait déduit les dettes et pas
+l'export : exactement la divergence que ce projet s'interdit.
+
+Une honnêteté nécessaire là-dessus : **un capital restant dû n'a pas
+d'historique mensuel.** C'est un chiffre courant, saisi à la main. Le rapport
+d'un mois passé affiche donc la dette d'AUJOURD'HUI, pas celle de ce mois-là.
+D'où la date portée dans le libellé — `Dettes restantes au 30/09/2026` dans le
+classeur, `capital revu le 15/09/2026` par prêt dans le PDF. Sans elle, on
+laisserait croire à un patrimoine net historique qui n'existe pas.

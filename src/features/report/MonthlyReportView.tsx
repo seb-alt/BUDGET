@@ -127,7 +127,7 @@ export function MonthlyReportView({ report }: MonthlyReportViewProps) {
       </section>
 
       <section className="report-block">
-        <h2>Comptes à la fin du mois</h2>
+        <h2>Patrimoine à la fin du mois</h2>
         <table className="report-table">
           <thead>
             <tr>
@@ -146,11 +146,33 @@ export function MonthlyReportView({ report }: MonthlyReportViewProps) {
                 <td className="is-number">{formatEuros(account.balance)}</td>
               </tr>
             ))}
-            <tr className="report-total">
+            <tr className={report.loans.length > 0 ? undefined : 'report-total'}>
               <th scope="row">Patrimoine financier</th>
               <td />
               <td className="is-number">{formatEuros(report.patrimony)}</td>
             </tr>
+
+            {/* Les dettes prolongent le tableau des comptes plutôt que de
+                former une carte à part : le chiffre qu'on vient chercher est
+                le net, et il se lit mieux au bout de l'addition. */}
+            {report.loans.map((loan) => (
+              <tr key={loan.name}>
+                <th scope="row">{loan.name}</th>
+                <td>Prêt · capital revu le {frenchDate(loan.lastUpdated)}</td>
+                <td className="is-number is-over">−{formatEuros(loan.remainingCapital)}</td>
+              </tr>
+            ))}
+
+            {report.loans.length > 0 && (
+              <tr className="report-total">
+                <th scope="row">
+                  Patrimoine net,{' '}
+                  {report.loans.length === 1 ? 'dette déduite' : 'dettes déduites'}
+                </th>
+                <td />
+                <td className="is-number">{formatEuros(report.netWorth)}</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </section>
