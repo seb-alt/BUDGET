@@ -213,8 +213,12 @@ export interface RecurringRule {
   active: boolean
   mode: RecurringMode
   isMicro?: boolean
-  /** Dernière date pour laquelle la règle a déjà produit une opération. */
-  lastRunDate?: IsoDate
+  /**
+   * Échéances que tu as explicitement écartées, en mode « à confirmer ».
+   * Sans cette liste, une proposition refusée reviendrait à chaque ouverture
+   * de l'application : impossible de s'en débarrasser.
+   */
+  skippedDates?: IsoDate[]
   createdAt: IsoTimestamp
   updatedAt: IsoTimestamp
 }

@@ -14,6 +14,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './app/App.tsx'
 import { syncMonthlyBudgets } from './db/budgets'
+import { applyAutomaticRules } from './db/recurring'
 import { seedInitialData } from './db/seed'
 import './index.css'
 
@@ -22,7 +23,10 @@ async function start() {
     const report = await seedInitialData()
     // Fige les mois révolus et remet la copie du mois en cours à jour (§11).
     const budgets = await syncMonthlyBudgets()
-    console.info('[budget] base prête', report, budgets)
+    // Crée les échéances automatiques en retard (§7). Sans effet si tout est
+    // à jour : le moteur ne propose que ce qui manque réellement.
+    const recurring = await applyAutomaticRules()
+    console.info('[budget] base prête', report, budgets, recurring)
   } catch (error) {
     // On affiche quand même l'application : mieux vaut un écran vide qu'un écran blanc.
     console.error('[budget] échec du remplissage initial', error)

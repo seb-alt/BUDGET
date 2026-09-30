@@ -37,6 +37,7 @@ src/
     budget/             # LES CALCULS, en TypeScript pur, sans React ni Dexie
     operations/         # recherche et filtres
     patrimony/          # soldes des comptes
+    recurring/          # échéances des règles récurrentes
     settings/           # règles des réglages
   components/
     ui/                 # briques réutilisables (panneau, boutons de choix…)
@@ -47,6 +48,7 @@ src/
     seed.ts             # comptes, catégories et réglages du premier lancement
     transactions.ts     # écriture et validation des opérations
     budgets.ts          # quel budget s'applique à quel mois
+    recurring.ts        # règles récurrentes : application et confirmation
   utils/                # dates, montants
   main.tsx              # point d'entrée : remplit la base puis affiche React
 ```
@@ -89,7 +91,7 @@ se met alors à jour au lieu d'être effacée.
 - [ ] Export Excel (§12) — **décision en attente, voir plus bas**
 - [x] **Étape 7** — onglet Patrimoine
 - [x] **Étape 8** — onglet Micro-entreprise
-- [ ] Opérations récurrentes (§7)
+- [x] **Étape 10** — opérations récurrentes (§7)
 - [x] **Étape 6** — sauvegarde, restauration et exports CSV
 - [x] **Étape 9** — PWA installable et hors connexion
 
@@ -308,3 +310,50 @@ Limite assumée : si l'application n'est pas ouverte de tout un mois, aucune
 photo n'a pu être prise pendant ce mois-là ; elle est alors créée au lancement
 suivant à partir du budget courant. C'est la meilleure information disponible,
 et mieux que de laisser ce mois dériver à chaque futur changement.
+
+### Opérations récurrentes (§7)
+
+Une règle décrit une opération qui revient : un nom, un montant, une
+fréquence (chaque semaine, chaque mois, chaque année), un jour du mois, une
+date de début, une date de fin facultative, et **un mode** :
+
+- **automatique** — l'opération se crée toute seule au lancement, pour ce qui
+  tombe à coup sûr (loyer, prêt étudiant, abonnement) ;
+- **à confirmer** — elle est proposée sur l'accueil et attend ton accord, pour
+  ce qui varie ou peut ne pas avoir lieu.
+
+**Comment les doublons sont évités.** La tentation est de retenir dans la
+règle la date de son dernier déclenchement. C'est un compteur : il se
+désynchronise dès qu'on restaure une sauvegarde plus ancienne, qu'on supprime
+une opération à la main, ou que l'horloge recule. Ici, rien n'est retenu. Avant
+de créer quoi que ce soit, le moteur liste les échéances dues depuis la date de
+début, puis retire celles qui existent **déjà** dans la table des opérations,
+reconnues par le couple `recurringRuleId` + `date`. La protection repose donc
+sur un fait vérifiable dans la base, pas sur une mémoire à tenir à jour — et
+elle reste vraie après n'importe quelle restauration.
+
+Les échéances écartées, elles, sont bien mémorisées dans la règle
+(`skippedDates`) : sans cette liste, une proposition refusée reviendrait à
+chaque ouverture, et rien ne permettrait de s'en débarrasser.
+
+Un jour du mois impossible est ramené au dernier jour réel : le 31 devient le
+30 en avril, le 28 ou le 29 en février.
+
+Trois gestes distincts sur une règle, à ne pas confondre :
+
+| Geste | Effet sur la règle | Effet sur les opérations déjà créées |
+| --- | --- | --- |
+| Désactiver | elle ne produit plus rien, elle reste là | aucun |
+| Supprimer | elle disparaît | aucun |
+| Écarter une échéance | elle continue | cette échéance-là n'est jamais créée |
+
+Le moteur est dans `domain/recurring/recurringEngine.ts` (pur, testé) ; son
+branchement sur les tables est dans `db/recurring.ts`. `applyAutomaticRules()`
+est appelée au démarrage dans `main.tsx`, après `syncMonthlyBudgets()` — dans
+cet ordre, pour qu'un mois qui vient de se terminer soit figé avant que de
+nouvelles opérations n'y soient ajoutées.
+
+Limite assumée : les règles ne s'appliquent qu'à l'ouverture de l'application.
+Sans serveur, rien ne peut tourner pendant qu'elle est fermée. Rouvrir
+l'application un mois plus tard crée d'un coup toutes les échéances manquées,
+chacune à sa vraie date.

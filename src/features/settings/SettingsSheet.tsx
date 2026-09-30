@@ -18,6 +18,7 @@ import { BackupSection } from './BackupSection'
 import { BudgetSection } from './BudgetSection'
 import { CategoriesSection } from './CategoriesSection'
 import { MicroSection } from './MicroSection'
+import { RecurringSection } from './RecurringSection'
 import { SavingsSection } from './SavingsSection'
 import './Settings.css'
 
@@ -85,6 +86,21 @@ export function SettingsSheet({ onClose, onSaved }: SettingsSheetProps) {
 
         <details className="set-card">
           <summary>
+            <span>Opérations récurrentes</span>
+            <span className="set-caret" aria-hidden="true">
+              ›
+            </span>
+          </summary>
+          <RecurringSection
+            settings={settings}
+            categories={categories}
+            accounts={accounts}
+            onSaved={onSaved}
+          />
+        </details>
+
+        <details className="set-card">
+          <summary>
             <span>Micro-entreprise</span>
             <span className="set-caret" aria-hidden="true">
               ›
@@ -104,8 +120,7 @@ export function SettingsSheet({ onClose, onSaved }: SettingsSheetProps) {
         </details>
 
         <p className="set-todo">
-          Les opérations récurrentes et les clients se règleront depuis leurs propres
-          écrans, qui ne sont pas encore construits.
+          Les clients de la micro-entreprise se règlent depuis l'onglet Micro.
         </p>
       </div>
     </Sheet>

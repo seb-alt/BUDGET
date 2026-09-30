@@ -21,6 +21,7 @@ import { computeAccountBalances } from '../../domain/patrimony/accountBalance'
 import { addMonths, currentMonth, formatDayLabel, formatMonthLabel } from '../../utils/date'
 import { formatEurosCompact } from '../../utils/money'
 import { BudgetDonutChart } from './BudgetDonutChart'
+import { PendingRecurringCard } from './PendingRecurringCard'
 import { SavingsPlanCard } from './SavingsPlanCard'
 import { BUDGET_GROUPS } from './groups'
 import './Dashboard.css'
@@ -216,6 +217,8 @@ export function Dashboard({
             : 'Ta dernière sauvegarde date de plus d’un mois — en refaire une'}
         </button>
       )}
+
+      <PendingRecurringCard />
 
       <section className="dash-indicators" aria-label="Indicateurs du mois">
         <Indicator label="Entrées du mois" amount={summary.income} tone="positive" />

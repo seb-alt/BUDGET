@@ -204,6 +204,15 @@
   background: transparent;
   padding: var(--space-3) 0;
   font-size: 1rem;
+}
+
+/* Les chiffres seuls sont alignés à droite, contre le symbole € : c'est ce qui
+   permet de comparer deux montants d'un coup d'œil. Un nom de règle ou une
+   date, eux, se lisent depuis la gauche comme le reste du formulaire — les
+   aligner à droite donnait un champ « Nom » qui semblait déjà rempli de
+   travers. */
+.ui-amount input[inputmode='decimal'],
+.ui-amount input[inputmode='numeric'] {
   font-variant-numeric: tabular-nums;
   text-align: right;
 }

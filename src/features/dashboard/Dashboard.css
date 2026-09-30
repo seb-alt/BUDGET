@@ -411,3 +411,106 @@
   font-size: 1rem;
   font-weight: 650;
 }
+
+/* --- Échéances récurrentes à confirmer ---------------------------------- */
+
+.dash-pending {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dash-pending h2 {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.dash-pending-error {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--negative);
+}
+
+.dash-pending ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dash-pending li {
+  display: grid;
+  /* Le montant reste collé au texte, les boutons passent dessous sur un
+     téléphone : trois colonnes serrées rendraient « Confirmer » illisible. */
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2) var(--space-3);
+  align-items: baseline;
+}
+
+.dash-pending li + li {
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-3);
+}
+
+.dash-pending-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.dash-pending-name {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.dash-pending-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.dash-pending-amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.dash-pending-amount.is-positive {
+  color: var(--positive);
+}
+
+.dash-pending-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: var(--space-2);
+}
+
+.dash-pending-actions button {
+  appearance: none;
+  flex: 1;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.875rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.dash-pending-actions button.is-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.dash-pending-actions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
