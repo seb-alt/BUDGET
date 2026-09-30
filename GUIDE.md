@@ -42,11 +42,18 @@ Tout le reste est du confort. Ça, non.
 Pour installer une application web sur un téléphone, il lui faut une adresse.
 Le code est sur GitHub ; il suffit de demander à GitHub de le servir.
 
-1. Va sur ton dépôt : **github.com/seb-alt/BUDGET**
-2. Onglet **Settings** (Réglages), puis **Pages** dans la colonne de gauche
-3. Sous **Source**, choisis **GitHub Actions**
-4. C'est tout. À chaque fois que le code changera, le site se reconstruira tout
+1. **Fusionne le travail dans la branche `main`.** Tout a été développé sur une
+   branche à part ; la publication ne se déclenche que depuis `main`. Sur
+   GitHub : onglet **Pull requests** → **New pull request** → de la branche
+   `claude/new-session-hc8u08` vers `main` → **Merge**.
+2. Va sur ton dépôt : **github.com/seb-alt/BUDGET**
+3. Onglet **Settings** (Réglages), puis **Pages** dans la colonne de gauche
+4. Sous **Source**, choisis **GitHub Actions**
+5. C'est tout. À chaque fois que le code changera, le site se reconstruira tout
    seul.
+
+Tu peux suivre la construction dans l'onglet **Actions** : une coche verte veut
+dire que le site est en ligne. Elle prend deux à trois minutes.
 
 Après quelques minutes, ton application est à l'adresse :
 
