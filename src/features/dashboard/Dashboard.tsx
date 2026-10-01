@@ -102,6 +102,23 @@ export function Dashboard({
     })
   }, [accounts, categories, budget, transactions, month])
 
+  /**
+   * Ce qu'il reste sur le compte courant, AUJOURD'HUI.
+   *
+   * C'est le chiffre qu'on vient chercher en début de mois, quand le loyer est
+   * parti et que la paie n'est pas encore arrivée : les indicateurs du mois
+   * sont alors tous à zéro ou dans le rouge, alors qu'il reste de quoi vivre.
+   *
+   * Volontairement pas borné au mois affiché : un solde n'est pas une mesure
+   * mensuelle. Il part du dernier relevé saisi et suit toutes les opérations.
+   */
+  const currentAccount = useMemo(() => {
+    if (!settings || !allTransactions || !snapshots) return undefined
+    return computeAccountBalances([settings.defaultAccountId], allTransactions, snapshots).get(
+      settings.defaultAccountId,
+    )
+  }, [settings, allTransactions, snapshots])
+
   const lepBalance = useMemo(() => {
     if (!settings || !allTransactions || !snapshots) return 0
     return (
@@ -161,6 +178,8 @@ export function Dashboard({
   }
 
   const isCurrentMonth = month === currentMonth()
+  const currentAccountName =
+    accounts.find((account) => account.id === settings.defaultAccountId)?.name ?? 'ton compte'
 
   return (
     <div className="dash">
@@ -211,6 +230,29 @@ export function Dashboard({
 
       <PendingRecurringCard />
 
+      {/* Le seul chiffre de l'écran qui ne dépend pas du mois affiché, et le
+          plus utile au quotidien : « est-ce que je peux dépenser ? ». */}
+      {currentAccount !== undefined && (
+        <button
+          type="button"
+          className="dash-balance"
+          onClick={onUpdateBalances}
+          aria-label={`Sur ${currentAccountName} : ${formatEurosCompact(currentAccount.balance)}. Mettre à jour mes soldes.`}
+        >
+          <span className="dash-balance-label">Sur {currentAccountName}</span>
+          <strong
+            className={`dash-balance-value tabular${currentAccount.balance < 0 ? ' is-negative' : ''}`}
+          >
+            {formatEurosCompact(currentAccount.balance)}
+          </strong>
+          <span className="dash-balance-note">
+            {currentAccount.since === undefined
+              ? 'Calculé sur tes seules opérations enregistrées — saisir un relevé'
+              : `D'après ton relevé du ${formatDayLabel(currentAccount.since)}`}
+          </span>
+        </button>
+      )}
+
       <section className="dash-indicators" aria-label="Indicateurs du mois">
         {/* Ni vert ni rouge ici : l'étiquette dit déjà « Entrées » ou « Sorties ».
             Peindre une dépense normale en rouge la ferait passer pour une
@@ -221,11 +263,22 @@ export function Dashboard({
         <Indicator label="Épargne du mois" amount={summary.savings} tone="accent" />
         {/* Le matelas : ce que tes revenus laissent au-delà du budget, et qui
             reste sur ton compte. Il n'est affecté à rien — c'est tout l'intérêt.
-            En cas de manque, le même emplacement annonce le déficit. */}
+
+            Quand il manque de l'argent, le mot dépend du TEMPS. Sur un mois en
+            cours, le 1er, rien n'est encaissé et tout le budget semble
+            découvert : ce n'est pas un déficit, c'est une paie qui n'est pas
+            encore arrivée. On parle donc de « revenus attendus », sans rouge.
+            Sur un mois révolu, en revanche, le manque est un fait. */}
         <Indicator
-          label={balance.deficit > 0 ? 'Budget non couvert' : 'Non affecté'}
+          label={
+            balance.deficit === 0
+              ? 'Non affecté'
+              : isCurrentMonth
+                ? 'Revenus attendus'
+                : 'Budget non couvert'
+          }
           amount={balance.deficit > 0 ? balance.deficit : balance.unallocated}
-          tone={balance.deficit > 0 ? 'negative' : 'neutral'}
+          tone={balance.deficit > 0 && !isCurrentMonth ? 'negative' : 'neutral'}
         />
       </section>
 

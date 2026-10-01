@@ -62,7 +62,7 @@ export function SavingsPlanCard({
           <dd className="tabular">− {formatEurosCompact(balance.budgeted)}</dd>
         </div>
         <div className="plan-total">
-          <dt>{balance.deficit > 0 ? 'Il manque' : 'Non affecté'}</dt>
+          <dt>{balance.deficit > 0 ? 'Revenus attendus' : 'Non affecté'}</dt>
           <dd className="tabular">
             {formatEurosCompact(balance.deficit > 0 ? balance.deficit : balance.unallocated)}
           </dd>
@@ -70,12 +70,20 @@ export function SavingsPlanCard({
       </dl>
 
       {balance.deficit > 0 && (
-        /* On annonce le manque sans rien décider : c'est à toi de choisir ce
-           que tu ajustes, l'application ne rogne jamais une enveloppe seule. */
-        <p className="plan-deficit">
-          Tes revenus encaissés ne couvrent pas encore ton budget. Rien n’a été réduit
-          automatiquement : à toi de voir ce que tu ajustes — ou d’attendre le reste de tes
-          revenus.
+        /*
+           Pas de ton d'alerte ici : cette carte ne s'affiche que pour le mois
+           EN COURS. Le 1er, le loyer est parti et la paie n'est pas arrivée —
+           le budget semble découvert alors qu'il ne manque que du temps.
+           Peindre ça en rouge chaque début de mois apprendrait surtout à
+           ignorer le rouge.
+
+           Et quoi qu'il arrive, l'application ne rogne jamais une enveloppe
+           d'elle-même : c'est à toi de décider ce que tu ajustes.
+        */
+        <p className="plan-empty">
+          Il te reste {formatEurosCompact(balance.deficit)} à encaisser pour couvrir ton budget
+          du mois. Rien n’a été réduit automatiquement — le solde de ton compte, en haut, dit où
+          tu en es vraiment.
         </p>
       )}
 

@@ -117,6 +117,7 @@ elles ont été construites, pas dans celui du document.
 - [x] **Étape 17** — les prêts deviennent une liste (version 6)
 - [x] **Étape 18** — créer ses propres enveloppes d'épargne
 - [x] **Étape 19** — budget d'épargne fixe, et le « non affecté » rendu visible
+- [x] **Étape 20** — le solde du compte courant sur l'accueil
 
 ### Graphiques
 
@@ -774,3 +775,31 @@ le passé, elle est fixée au **1er du mois** plutôt qu'au 12 ou au 20 : une
 
 Attention au piège rencontré : ces aides vivent dans Node, mais les blocs
 `page.evaluate` s'exécutent dans le NAVIGATEUR. Elles y sont redéfinies.
+
+### Le solde du compte courant sur l'accueil
+
+Le 1er du mois, le loyer est parti et la paie n'est pas arrivée. Les quatre
+indicateurs affichent alors 0 € d'entrées, 780 € de sorties et — avant ce
+changement — un **« Budget non couvert 2 000 € » en rouge**. Une fausse alerte,
+tous les mois, et rien à l'écran pour dire combien il reste vraiment.
+
+Deux corrections.
+
+**Un bandeau de solde, au-dessus des indicateurs.** C'est le seul chiffre de
+l'écran qui ne dépend pas du mois affiché : un solde n'est pas une mesure
+mensuelle. Il part du dernier relevé saisi et suit toutes les opérations. Le
+bandeau dit aussi sur quoi il se fonde — « D'après ton relevé du 28 septembre »,
+ou « Calculé sur tes seules opérations enregistrées » s'il n'y a pas de relevé.
+Sans cette mention, un chiffre faux aurait l'air sûr. Un solde négatif, lui,
+porte la couleur d'alerte : un découvert est un fait, pas une attente.
+
+**Le mot employé pour un manque dépend du TEMPS.** Sur un mois en cours, ce
+n'est pas un déficit mais une paie qui n'est pas encore arrivée : l'indicateur
+dit « Revenus attendus », sans rouge. Sur un mois révolu, le manque est un fait
+avéré : « Budget non couvert », en rouge. Même calcul, même emplacement, deux
+lectures — parce que peindre en rouge chaque début de mois apprend surtout à
+ignorer le rouge.
+
+Le bloc explicatif de la carte suit la même logique : il ne s'affiche que pour
+le mois en cours, donc il a perdu son fond d'alerte et renvoie au solde du
+compte, qui lui dit la vérité du moment.
