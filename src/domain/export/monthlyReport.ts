@@ -78,6 +78,12 @@ export interface MonthlyReport {
   expenses: Cents
   savings: Cents
   leisureRemaining: Cents
+  /** Ce que le budget prévoit : charges fixes + épargne + loisirs. */
+  budgeted: Cents
+  /** Ce que les revenus laissent au-delà du budget — le matelas sur le compte. */
+  unallocated: Cents
+  /** Ce qui manque pour couvrir le budget. Zéro quand tout va bien. */
+  deficit: Cents
 
   groups: { title: string; budget: Cents; spent: Cents; remaining: Cents }[]
   lines: ReportLine[]
@@ -119,6 +125,11 @@ function summarySheet(report: MonthlyReport): SheetSpec {
     ['Sorties du mois', euros(report.expenses)],
     ['Épargne du mois', euros(report.savings)],
     ['Loisirs restants', euros(report.leisureRemaining)],
+    ['Budget du mois', euros(report.budgeted)],
+    [
+      report.deficit > 0 ? 'Budget non couvert' : 'Non affecté, resté sur le compte',
+      euros(report.deficit > 0 ? report.deficit : report.unallocated),
+    ],
     [],
     ['Patrimoine à la fin du mois', euros(report.patrimony)],
   ]

@@ -1,112 +1,102 @@
 /**
  * src/domain/budget/budgetEngine.ts
  *
- * LOGIQUE MÉTIER PURE — la règle de l'enveloppe flexible (cahier des charges §4).
+ * LOGIQUE MÉTIER PURE — ce que le budget laisse sur le compte.
  *
  * ---------------------------------------------------------------------------
- * L'IDÉE
+ * CE QUI A CHANGÉ, ET POURQUOI
  * ---------------------------------------------------------------------------
- * Tes revenus varient d'un mois à l'autre, mais tes charges fixes, tes loisirs
- * et ton versement assurance-vie, eux, ne bougent pas. Ce serait absurde de
- * rogner sur les courses parce qu'un mois est plus creux.
+ * Ce fichier calculait d'abord une « enveloppe flexible » : tout ce qui
+ * dépassait les charges fixes, les loisirs et l'assurance-vie était d'office
+ * affecté au LEP/PEA, et le montant saisi dans le budget pour cette ligne était
+ * ignoré au profit du calcul.
  *
- * C'est donc l'enveloppe LEP/PEA qui absorbe la variation : elle est la seule
- * variable d'ajustement.
+ * Deux défauts à l'usage :
  *
- *   budgetIncompressible = chargesFixes + loisirs + assuranceVie
- *   epargneFlexible      = max(0 ; revenusReels - budgetIncompressible)
+ *  1. Écrire 350 € dans son budget et en voir 550 € affichés est déroutant.
+ *     Un budget qu'on ne peut pas fixer n'est plus vraiment un budget.
  *
- * Avec 800 + 350 + 500 = 1 650 € d'incompressible :
- *   2 000 € de revenus -> 350 € de flexible
- *   1 900 €            -> 250 €
- *   1 800 €            -> 150 €
- *   2 200 €            -> 550 €
+ *  2. Le modèle supposait que TOUT le surplus devait être épargné. En pratique,
+ *     on garde volontiers un matelas sur le compte courant — et ce matelas
+ *     n'apparaissait nulle part, puisqu'il était compté comme de l'épargne à
+ *     venir.
+ *
+ * Désormais l'enveloppe LEP/PEA est une ligne de budget comme une autre, et
+ * c'est le SURPLUS qui devient un chiffre affiché :
+ *
+ *   budgété       = charges fixes + épargne + loisirs
+ *   non affecté   = max(0 ; revenus réels − budgété)
+ *   déficit       = max(0 ; budgété − revenus réels)
+ *
+ * Avec 800 + 850 + 350 = 2 000 € budgétés :
+ *   2 000 € de revenus -> 0 € non affecté
+ *   2 200 €            -> 200 € non affecté
+ *   1 800 €            -> 200 € de déficit
  *
  * ---------------------------------------------------------------------------
  * CE QUE LE MOTEUR NE FAIT JAMAIS
  * ---------------------------------------------------------------------------
- * Si les revenus tombent sous l'incompressible, l'épargne flexible tombe à
- * zéro et l'application signale un déficit. Elle ne réduit JAMAIS d'elle-même
- * tes charges fixes, tes loisirs ou ton assurance-vie : c'est à toi de décider
- * quoi couper, pas à un calcul.
+ * Il ne déplace pas un centime. Aucune ligne de cette application ne crée de
+ * virement de sa propre initiative : l'épargne n'est comptée que lorsqu'un
+ * virement est ENREGISTRÉ. Et en cas de déficit, le moteur signale le manque
+ * sans jamais rogner lui-même sur une enveloppe : c'est à toi de décider quoi
+ * couper, pas à un calcul.
  */
 
 import type { BudgetLine, CategoryGroup, Cents, Category } from '../../db/types'
 
-export interface FlexibleSavingsInput {
+export interface MonthBalanceInput {
   /** Revenus personnels RÉELLEMENT encaissés ce mois-ci (hors micro-entreprise). */
   actualIncome: Cents
-  /** Budget des charges fixes. */
-  fixedCharges: Cents
-  /** Budget des loisirs. */
-  leisure: Cents
-  /** Versement mensuel vers l'assurance-vie. */
-  assuranceVie: Cents
+  /** Budget du mois, toutes lignes confondues. */
+  budget: BudgetLine[]
+  /** Sert à rattacher chaque ligne du budget à son groupe. */
+  categories: Category[]
 }
 
-export interface FlexibleSavingsResult {
-  /** Ce qui ne se négocie pas : charges fixes + loisirs + assurance-vie. */
-  incompressible: Cents
-  /** Ce qui reste pour l'enveloppe LEP / PEA. Jamais négatif. */
-  flexible: Cents
+export interface MonthBalanceResult {
+  /** Ce que le budget prévoit : charges fixes + épargne + loisirs. */
+  budgeted: Cents
   /**
-   * Ce qui manque pour couvrir l'incompressible. Vaut 0 quand tout va bien.
+   * Ce que les revenus laissent au-delà du budget — le matelas qui reste sur
+   * le compte courant. Jamais négatif.
+   */
+  unallocated: Cents
+  /**
+   * Ce qui manque pour couvrir le budget. Vaut 0 quand tout va bien.
    * C'est un chiffre à AFFICHER, pas une consigne : l'app ne coupe rien seule.
    */
   deficit: Cents
 }
 
-export function computeFlexibleSavings(input: FlexibleSavingsInput): FlexibleSavingsResult {
-  const incompressible = input.fixedCharges + input.leisure + input.assuranceVie
-  const remaining = input.actualIncome - incompressible
+/** Les trois groupes qui composent le budget mensuel. Les autres n'en sont pas. */
+const BUDGETED_GROUPS: CategoryGroup[] = ['chargesFixes', 'epargne', 'loisirs']
+
+export function computeMonthBalance(input: MonthBalanceInput): MonthBalanceResult {
+  const groupOf = new Map(input.categories.map((category) => [category.id, category.group]))
+
+  const budgeted = input.budget
+    .filter((line) => {
+      const group = groupOf.get(line.categoryId)
+      return group !== undefined && BUDGETED_GROUPS.includes(group)
+    })
+    .reduce((total, line) => total + line.amount, 0)
+
+  const remaining = input.actualIncome - budgeted
 
   return {
-    incompressible,
-    flexible: Math.max(0, remaining),
+    budgeted,
+    unallocated: Math.max(0, remaining),
     deficit: Math.max(0, -remaining),
   }
 }
 
-/* ------------------------------------------------------------------------ */
-/* Application de la règle au budget du mois                                 */
-/* ------------------------------------------------------------------------ */
-
 /**
- * Remplace le montant de l'enveloppe flexible dans le budget du mois par
- * celui que la règle vient de calculer.
+ * Le montant budgété pour l'enveloppe répartie entre LEP et PEA.
  *
- * Sans ça, l'application se contredirait : la carte Épargne afficherait la
- * ligne fixe du budget (350 €) pendant que le moteur annoncerait autre chose.
- * C'est bien le budget affiché qui doit suivre les revenus réels — c'est tout
- * l'intérêt de la règle.
- *
- * Les charges fixes et les loisirs sont lus depuis le budget du mois lui-même,
- * donc un mois passé utilise ses montants figés (§11) et non ceux d'aujourd'hui.
+ * C'est lui que `splitLepPea` répartit ensuite. Zéro si la ligne n'existe pas :
+ * l'enveloppe a pu être renommée, vidée, ou ne pas encore avoir de budget.
  */
-export function applyFlexibleEnvelope(input: {
-  budget: BudgetLine[]
-  categories: Category[]
-  actualIncome: Cents
-  flexibleCategoryId: string
-  assuranceVieMonthly: Cents
-}): { budget: BudgetLine[]; savings: FlexibleSavingsResult } {
-  const groupOf = new Map(input.categories.map((category) => [category.id, category.group]))
-  const sumOfGroup = (group: CategoryGroup): Cents =>
-    input.budget
-      .filter((line) => groupOf.get(line.categoryId) === group)
-      .reduce((total, line) => total + line.amount, 0)
-
-  const savings = computeFlexibleSavings({
-    actualIncome: input.actualIncome,
-    fixedCharges: sumOfGroup('chargesFixes'),
-    leisure: sumOfGroup('loisirs'),
-    assuranceVie: input.assuranceVieMonthly,
-  })
-
-  return {
-    budget: input.budget.map((line) =>
-      line.categoryId === input.flexibleCategoryId ? { ...line, amount: savings.flexible } : line,
-    ),
-    savings,
-  }
+export function plannedEnvelope(budget: BudgetLine[], envelopeCategoryId: string): Cents {
+  return budget.find((line) => line.categoryId === envelopeCategoryId)?.amount ?? 0
 }

@@ -25,11 +25,10 @@ interface SavingsSectionProps {
 
 export function SavingsSection({ settings, onSaved }: SavingsSectionProps) {
   const [threshold, setThreshold] = useState(toInput(settings.lepThreshold))
-  const [assuranceVie, setAssuranceVie] = useState(toInput(settings.assuranceVieMonthly))
   const [error, setError] = useState<string>()
   const [isSaving, setIsSaving] = useState(false)
 
-  const fields = [threshold, assuranceVie]
+  const fields = [threshold]
   const hasInvalid = fields.some((field) => parseBalanceInput(field) === null)
 
   async function handleSave() {
@@ -43,7 +42,10 @@ export function SavingsSection({ settings, onSaved }: SavingsSectionProps) {
     try {
       await updateSavingsSettings({
         lepThreshold: parseBalanceInput(threshold)!,
-        assuranceVieMonthly: parseBalanceInput(assuranceVie)!,
+        // Conservé pour les photos de budget déjà figées, mais ce réglage ne
+        // pilote plus aucun calcul : le versement assurance-vie est une ligne
+        // de budget comme une autre.
+        assuranceVieMonthly: settings.assuranceVieMonthly,
       })
       onSaved('Réglages d’épargne enregistrés.')
     } catch (cause) {
@@ -62,13 +64,6 @@ export function SavingsSection({ settings, onSaved }: SavingsSectionProps) {
           invalid={parseBalanceInput(threshold) === null}
           onChange={setThreshold}
           hint="Tant que le LEP est sous ce seuil, l'épargne flexible l'alimente en priorité."
-        />
-        <AmountField
-          label="Assurance-vie par mois"
-          value={assuranceVie}
-          invalid={parseBalanceInput(assuranceVie) === null}
-          onChange={setAssuranceVie}
-          hint="Versement incompressible : il ne varie pas avec tes revenus."
         />
       </div>
 

@@ -116,6 +116,7 @@ elles ont été construites, pas dans celui du document.
 - [x] **Étape 16** — remplissage initial neutre, pour un dépôt publiable
 - [x] **Étape 17** — les prêts deviennent une liste (version 6)
 - [x] **Étape 18** — créer ses propres enveloppes d'épargne
+- [x] **Étape 19** — budget d'épargne fixe, et le « non affecté » rendu visible
 
 ### Graphiques
 
@@ -320,23 +321,6 @@ corresponde toujours au total du groupe.
 
 Toute modification du budget rappelle `syncMonthlyBudgets()` : sans ça, la
 copie du mois en cours garderait l'ancien budget jusqu'au prochain lancement.
-
-### Le moteur d'épargne (§4)
-
-Deux règles, deux fichiers, tous deux en TypeScript pur et couverts par les
-exemples chiffrés du cahier des charges :
-
-- `domain/budget/budgetEngine.ts` — l'enveloppe flexible. Charges fixes,
-  loisirs et assurance-vie ne bougent pas ; c'est l'enveloppe LEP/PEA qui
-  absorbe la variation des revenus. Si les revenus ne suffisent pas, elle tombe
-  à zéro et l'app **affiche un déficit sans jamais rogner** une autre enveloppe.
-- `domain/budget/lepPeaEngine.ts` — la répartition. Le LEP passe en premier
-  tant qu'il n'a pas atteint son seuil, le surplus va au PEA.
-
-`applyFlexibleEnvelope()` réécrit la ligne du budget correspondante, pour que la
-carte Épargne et la carte de proposition affichent toujours le même montant.
-La catégorie concernée est désignée par `settings.flexibleSavingsCategoryId` —
-jamais devinée.
 
 ### Les soldes, sans connexion bancaire (§8)
 
@@ -731,3 +715,62 @@ message.
 Une enveloppe d'épargne n'est pas proposée parmi les boutons d'accès rapide de
 la saisie : elle se remplit par virement, la proposer comme catégorie de
 dépense induirait en erreur.
+
+### Budget d'épargne fixe, et le « non affecté » (remplace le moteur flexible)
+
+Le §4 prévoyait une **enveloppe flexible** : tout ce qui dépassait les charges
+fixes, les loisirs et l'assurance-vie était d'office affecté au LEP/PEA, et le
+montant saisi dans le budget pour cette ligne était ignoré au profit du calcul.
+
+Deux défauts à l'usage, remontés par l'utilisation réelle :
+
+1. **Écrire 350 € dans son budget et en voir 550 € affichés est déroutant.** Un
+   budget qu'on ne peut pas fixer n'est plus vraiment un budget.
+2. **Le modèle supposait que tout le surplus devait être épargné.** En pratique
+   on garde volontiers un matelas sur le compte courant — et ce matelas
+   n'apparaissait nulle part, puisqu'il était compté comme de l'épargne à venir.
+
+L'enveloppe LEP/PEA est donc devenue une ligne de budget comme une autre, et
+c'est le surplus qui est calculé et **affiché** :
+
+```
+budgété     = charges fixes + épargne + loisirs
+non affecté = max(0 ; revenus réels − budgété)
+déficit     = max(0 ; budgété − revenus réels)
+```
+
+Le quatrième indicateur de l'accueil montre ce **« Non affecté »**, et bascule
+en **« Budget non couvert »** quand les revenus ne suivent pas — même
+emplacement, même calcul, signe opposé.
+
+`splitLepPea` est conservé : il répartit maintenant le montant **budgété** entre
+le LEP (tant qu'il n'est pas plein) et le PEA. C'est devenu une proposition de
+virement, plus une décision sur le montant.
+
+Deux conséquences à connaître :
+
+- `assuranceVieMonthly` ne pilote plus aucun calcul — ce versement est une ligne
+  de budget comme les autres. Le champ est conservé parce que les photos de
+  budget figées (§11) le contiennent, mais il a disparu de l'écran des
+  réglages : maintenir deux nombres censés être égaux est une source d'erreur.
+- `flexibleSavingsCategoryId` désigne toujours l'enveloppe répartie entre LEP et
+  PEA, et reste protégée contre la suppression.
+
+**Rien n'a jamais été viré automatiquement**, ni avant ni après ce changement :
+aucune ligne de ce projet ne crée de virement de sa propre initiative. Un test
+le vérifie explicitement.
+
+### Des vérifications qui ne pourrissent pas au changement de mois
+
+Les scripts de vérification fabriquaient des opérations de septembre en
+supposant que septembre était le mois courant. Le 1er octobre, cinq suites ont
+échoué d'un coup sans qu'une ligne de l'application ait bougé.
+
+Toutes les dates sont désormais dérivées de la date du jour (`jour(12)`,
+`jourPrecedent(1)`, `MOIS_SUIVANT`…). Et quand une échéance devait tomber dans
+le passé, elle est fixée au **1er du mois** plutôt qu'au 12 ou au 20 : une
+échéance au 1er est due quel que soit le jour où le test tourne, là où une
+échéance au 12 ne l'est pas en début de mois.
+
+Attention au piège rencontré : ces aides vivent dans Node, mais les blocs
+`page.evaluate` s'exécutent dans le NAVIGATEUR. Elles y sont redéfinies.

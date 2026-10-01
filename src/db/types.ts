@@ -349,7 +349,13 @@ export interface Settings {
   budgetTemplate: BudgetLine[]
   /** Seuil au-delà duquel le LEP est considéré comme plein (8 000 € par défaut). */
   lepThreshold: Cents
-  /** Versement mensuel incompressible vers l'assurance-vie. */
+  /**
+   * Versement mensuel vers l'assurance-vie.
+   *
+   * OBSOLÈTE : ce montant est désormais une ligne du budget comme une autre.
+   * Le champ est conservé parce que les photos de budget déjà figées (§11) le
+   * contiennent ; le supprimer demanderait une migration pour zéro bénéfice.
+   */
   assuranceVieMonthly: Cents
 
   /**

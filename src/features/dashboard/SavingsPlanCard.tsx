@@ -1,22 +1,29 @@
 /**
  * src/features/dashboard/SavingsPlanCard.tsx
  *
- * « Où va mon épargne ce mois-ci » — le résultat des deux règles du §4.
+ * « Où va mon épargne ce mois-ci » — la répartition LEP / PEA.
  *
- * C'est une PROPOSITION, pas un constat : l'application calcule ce qu'il
- * faudrait verser, elle ne vire rien à ta place. Les virements que tu fais
- * réellement apparaissent, eux, dans la carte Épargne & investissement.
+ * C'est une PROPOSITION, pas un constat. L'application ne vire rien à ta place
+ * et n'a aucun lien avec ta banque : elle dit seulement comment répartir le
+ * montant que TU as budgété pour cette enveloppe. Les virements réellement
+ * enregistrés apparaissent, eux, dans la carte Épargne & investissement.
+ *
+ * La carte ne décide plus du montant à épargner — c'est ta ligne de budget qui
+ * le fixe. Elle répond à la question suivante : de ces 350 €, combien sur le
+ * LEP tant qu'il n'est pas plein, et combien sur le PEA.
  */
 
 import type { Cents } from '../../db/types'
-import type { FlexibleSavingsResult } from '../../domain/budget/budgetEngine'
+import type { MonthBalanceResult } from '../../domain/budget/budgetEngine'
 import { splitLepPea } from '../../domain/budget/lepPeaEngine'
 import { formatEurosCompact } from '../../utils/money'
 import { formatDayLabel } from '../../utils/date'
 import './SavingsPlanCard.css'
 
 interface SavingsPlanCardProps {
-  savings: FlexibleSavingsResult
+  /** Le montant budgété pour l'enveloppe LEP / PEA, à répartir. */
+  envelope: Cents
+  balance: MonthBalanceResult
   actualIncome: Cents
   lepBalance: Cents
   lepThreshold: Cents
@@ -28,7 +35,8 @@ interface SavingsPlanCardProps {
 }
 
 export function SavingsPlanCard({
-  savings,
+  envelope,
+  balance,
   actualIncome,
   lepBalance,
   lepThreshold,
@@ -37,12 +45,12 @@ export function SavingsPlanCard({
   lastSnapshotDate,
   onUpdateBalances,
 }: SavingsPlanCardProps) {
-  const split = splitLepPea({ flexible: savings.flexible, lepBalance, lepThreshold })
+  const split = splitLepPea({ flexible: envelope, lepBalance, lepThreshold })
   const lepRatio = lepThreshold > 0 ? Math.min(lepBalance / lepThreshold, 1) : 0
 
   return (
     <section className="plan">
-      <h2>Épargne du mois — proposition</h2>
+      <h2>Ce mois-ci</h2>
 
       <dl className="plan-maths">
         <div>
@@ -50,27 +58,36 @@ export function SavingsPlanCard({
           <dd className="tabular">{formatEurosCompact(actualIncome)}</dd>
         </div>
         <div>
-          <dt>Budget incompressible</dt>
-          <dd className="tabular">− {formatEurosCompact(savings.incompressible)}</dd>
+          <dt>Budget du mois</dt>
+          <dd className="tabular">− {formatEurosCompact(balance.budgeted)}</dd>
         </div>
         <div className="plan-total">
-          <dt>Enveloppe flexible</dt>
-          <dd className="tabular">{formatEurosCompact(savings.flexible)}</dd>
+          <dt>{balance.deficit > 0 ? 'Il manque' : 'Non affecté'}</dt>
+          <dd className="tabular">
+            {formatEurosCompact(balance.deficit > 0 ? balance.deficit : balance.unallocated)}
+          </dd>
         </div>
       </dl>
 
-      {savings.deficit > 0 ? (
+      {balance.deficit > 0 && (
         /* On annonce le manque sans rien décider : c'est à toi de choisir ce
            que tu ajustes, l'application ne rogne jamais une enveloppe seule. */
         <p className="plan-deficit">
-          Il manque <strong>{formatEurosCompact(savings.deficit)}</strong> pour couvrir
-          tes charges fixes, tes loisirs et ton assurance-vie ce mois-ci. Rien n'a été
-          réduit automatiquement : à toi de voir ce que tu ajustes.
+          Tes revenus encaissés ne couvrent pas encore ton budget. Rien n’a été réduit
+          automatiquement : à toi de voir ce que tu ajustes — ou d’attendre le reste de tes
+          revenus.
         </p>
-      ) : savings.flexible === 0 ? (
+      )}
+
+      {/* L'avertissement est ICI et pas dans le titre de la carte : c'est la
+          répartition qui pourrait se prendre pour un ordre de virement, pas le
+          constat des revenus. */}
+      <h3 className="plan-subtitle">Enveloppe LEP / PEA — à virer toi-même</h3>
+
+      {envelope === 0 ? (
         <p className="plan-empty">
-          Tes revenus couvrent tout juste ton budget incompressible : rien à répartir
-          ce mois-ci.
+          Aucun montant budgété pour cette enveloppe. Règle-le dans Paramètres → Budget mensuel
+          : c'est toi qui décides combien y mettre.
         </p>
       ) : (
         <ul className="plan-split">
