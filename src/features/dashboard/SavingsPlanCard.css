@@ -124,3 +124,15 @@
   cursor: pointer;
   text-align: left;
 }
+
+/* Le sous-titre qui sépare le constat du mois de la répartition de l'enveloppe :
+   deux choses différentes, qu'on confondait quand la carte calculait elle-même
+   le montant à épargner. */
+.plan-subtitle {
+  margin: var(--space-2) 0 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}

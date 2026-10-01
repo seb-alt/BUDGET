@@ -1,158 +1,93 @@
-/**
- * Tests de la règle de l'enveloppe flexible (§4).
- * Les quatre premiers cas sont les exemples chiffrés du cahier des charges.
- */
-
 import { describe, expect, it } from 'vitest'
+import { computeMonthBalance, plannedEnvelope } from './budgetEngine'
 import type { BudgetLine, Category } from '../../db/types'
-import { applyFlexibleEnvelope, computeFlexibleSavings } from './budgetEngine'
 
-/** La configuration de référence : 800 + 350 + 500 = 1 650 € d'incompressible. */
-const reference = (actualIncome: number) =>
-  computeFlexibleSavings({
-    actualIncome,
-    fixedCharges: 80000,
-    leisure: 35000,
-    assuranceVie: 50000,
+const euros = (value: number) => Math.round(value * 100)
+
+/** Un jeu de catégories minimal, un par groupe qui compte dans le budget. */
+const categories = [
+  { id: 'loyer', name: 'Loyer', kind: 'expense', group: 'chargesFixes', order: 1, active: true },
+  { id: 'av', name: 'Assurance-vie', kind: 'saving', group: 'epargne', order: 1, active: true },
+  { id: 'lep-pea', name: 'LEP / PEA', kind: 'saving', group: 'epargne', order: 2, active: true },
+  { id: 'sorties', name: 'Sorties', kind: 'expense', group: 'loisirs', order: 1, active: true },
+  // Hors budget : ni dans les charges, ni dans l'épargne, ni dans les loisirs.
+  { id: 'autre', name: 'Autre', kind: 'expense', group: 'divers', order: 1, active: true },
+  { id: 'salaire', name: 'Salaire', kind: 'income', group: 'revenuPerso', order: 1, active: true },
+] as Category[]
+
+/** 800 + 500 + 350 + 350 = 2 000 € budgétés. */
+const budget: BudgetLine[] = [
+  { categoryId: 'loyer', amount: euros(800) },
+  { categoryId: 'av', amount: euros(500) },
+  { categoryId: 'lep-pea', amount: euros(350) },
+  { categoryId: 'sorties', amount: euros(350) },
+]
+
+const balance = (actualIncome: number) =>
+  computeMonthBalance({ actualIncome: euros(actualIncome), budget, categories })
+
+describe('computeMonthBalance', () => {
+  it('additionne les trois groupes budgétés', () => {
+    expect(balance(2000).budgeted).toBe(euros(2000))
   })
 
-describe('exemples du cahier des charges', () => {
-  it('2 000 € de revenus -> 350 € de flexible', () => {
-    expect(reference(200000).flexible).toBe(35000)
-  })
-
-  it('1 900 € -> 250 €', () => {
-    expect(reference(190000).flexible).toBe(25000)
-  })
-
-  it('1 800 € -> 150 €', () => {
-    expect(reference(180000).flexible).toBe(15000)
-  })
-
-  it('2 200 € -> 550 €', () => {
-    expect(reference(220000).flexible).toBe(55000)
-  })
-})
-
-describe('incompressible', () => {
-  it('additionne charges fixes, loisirs et assurance-vie', () => {
-    expect(reference(200000).incompressible).toBe(165000)
-  })
-
-  it('ne dépend pas des revenus', () => {
-    expect(reference(100000).incompressible).toBe(165000)
-    expect(reference(500000).incompressible).toBe(165000)
-  })
-})
-
-describe('revenus insuffisants', () => {
-  it('l’épargne flexible tombe à zéro, jamais en négatif', () => {
-    const result = reference(160000)
-    expect(result.flexible).toBe(0)
-  })
-
-  it('le manque est chiffré séparément', () => {
-    // 1 600 € de revenus contre 1 650 € d'incompressible : il manque 50 €.
-    expect(reference(160000).deficit).toBe(5000)
-  })
-
-  it('ne réduit JAMAIS les autres enveloppes de lui-même', () => {
-    const result = reference(100000)
-    // L'incompressible reste intact : c'est à l'utilisateur de décider quoi couper.
-    expect(result.incompressible).toBe(165000)
-    expect(result.flexible).toBe(0)
-    expect(result.deficit).toBe(65000)
-  })
-
-  it('aucun déficit quand les revenus couvrent exactement l’incompressible', () => {
-    const result = reference(165000)
-    expect(result.flexible).toBe(0)
-    expect(result.deficit).toBe(0)
-  })
-})
-
-describe('cas limites', () => {
-  it('zéro revenu : tout l’incompressible est en déficit', () => {
-    expect(reference(0)).toEqual({ incompressible: 165000, flexible: 0, deficit: 165000 })
-  })
-
-  it('un budget modifié change l’incompressible', () => {
-    // Assurance-vie portée à 600 € : l'incompressible monte, le flexible baisse.
-    const result = computeFlexibleSavings({
-      actualIncome: 200000,
-      fixedCharges: 80000,
-      leisure: 35000,
-      assuranceVie: 60000,
-    })
-    expect(result.incompressible).toBe(175000)
-    expect(result.flexible).toBe(25000)
-  })
-})
-
-describe('applyFlexibleEnvelope', () => {
-  const categories: Category[] = [
-    { id: 'abo', name: 'Abonnements', kind: 'expense', group: 'chargesFixes', order: 1, active: true },
-    { id: 'pret', name: 'Prêt', kind: 'expense', group: 'chargesFixes', order: 2, active: true },
-    { id: 'sorties', name: 'Sorties', kind: 'expense', group: 'loisirs', order: 1, active: true },
-    { id: 'shopping', name: 'Shopping', kind: 'expense', group: 'loisirs', order: 2, active: true },
-    { id: 'av', name: 'Assurance-vie', kind: 'saving', group: 'epargne', order: 1, active: true },
-    { id: 'flex', name: 'Flexible', kind: 'saving', group: 'epargne', order: 2, active: true },
-  ]
-
-  // 450 + 350 de charges, 100 + 250 de loisirs, 500 d'assurance-vie = 1 650 €.
-  const budget: BudgetLine[] = [
-    { categoryId: 'abo', amount: 45000 },
-    { categoryId: 'pret', amount: 35000 },
-    { categoryId: 'sorties', amount: 10000 },
-    { categoryId: 'shopping', amount: 25000 },
-    { categoryId: 'av', amount: 50000 },
-    { categoryId: 'flex', amount: 35000 },
-  ]
-
-  const apply = (actualIncome: number) =>
-    applyFlexibleEnvelope({
-      budget,
+  it('ne compte PAS les groupes hors budget', () => {
+    const withExtra = computeMonthBalance({
+      actualIncome: euros(2000),
+      budget: [...budget, { categoryId: 'autre', amount: euros(500) }],
       categories,
-      actualIncome,
-      flexibleCategoryId: 'flex',
-      assuranceVieMonthly: 50000,
     })
-
-  it('réécrit la ligne flexible avec le montant calculé', () => {
-    const result = apply(190000)
-    expect(result.savings.flexible).toBe(25000)
-    expect(result.budget.find((l) => l.categoryId === 'flex')?.amount).toBe(25000)
+    expect(withExtra.budgeted).toBe(euros(2000))
   })
 
-  it('ne touche à aucune autre ligne', () => {
-    const result = apply(190000)
-    expect(result.budget.filter((l) => l.categoryId !== 'flex')).toEqual(
-      budget.filter((l) => l.categoryId !== 'flex'),
-    )
-  })
-
-  it('ramène la ligne à zéro quand les revenus sont insuffisants', () => {
-    const result = apply(150000)
-    expect(result.budget.find((l) => l.categoryId === 'flex')?.amount).toBe(0)
-    expect(result.savings.deficit).toBe(15000)
-  })
-
-  it('lit les charges dans le budget FOURNI, pas dans les réglages du jour', () => {
-    // Un mois figé avec des loisirs à 200 € au lieu de 350 € : l'enveloppe
-    // flexible de ce mois-là doit être calculée avec 200 €.
-    const frozen = budget.map((l) =>
-      l.categoryId === 'shopping' ? { ...l, amount: 10000 } : l,
-    )
-    const result = applyFlexibleEnvelope({
-      budget: frozen,
+  it('ignore une ligne dont la catégorie a disparu', () => {
+    const orphan = computeMonthBalance({
+      actualIncome: euros(2000),
+      budget: [...budget, { categoryId: 'supprimée', amount: euros(900) }],
       categories,
-      actualIncome: 200000,
-      flexibleCategoryId: 'flex',
-      assuranceVieMonthly: 50000,
     })
+    expect(orphan.budgeted).toBe(euros(2000))
+  })
 
-    // Incompressible = 800 + 200 + 500 = 1 500 -> flexible 500 €.
-    expect(result.savings.incompressible).toBe(150000)
-    expect(result.savings.flexible).toBe(50000)
+  it('ne laisse rien de non affecté quand les revenus couvrent juste le budget', () => {
+    expect(balance(2000)).toMatchObject({ unallocated: 0, deficit: 0 })
+  })
+
+  it('montre le matelas quand les revenus dépassent le budget', () => {
+    expect(balance(2200)).toMatchObject({ unallocated: euros(200), deficit: 0 })
+  })
+
+  it('montre le manque quand les revenus ne suffisent pas', () => {
+    expect(balance(1800)).toMatchObject({ unallocated: 0, deficit: euros(200) })
+  })
+
+  it('n’affiche jamais un non-affecté négatif', () => {
+    expect(balance(0).unallocated).toBe(0)
+  })
+
+  it('compte tout en non affecté quand le budget est vide', () => {
+    const empty = computeMonthBalance({ actualIncome: euros(2000), budget: [], categories })
+    expect(empty).toMatchObject({ budgeted: 0, unallocated: euros(2000), deficit: 0 })
+  })
+
+  /*
+   * Le point qui a motivé la refonte : le montant saisi pour l'enveloppe
+   * LEP/PEA est RESPECTÉ. Avant, il était remplacé par le surplus calculé, et
+   * un budget qu'on ne peut pas fixer n'est plus vraiment un budget.
+   */
+  it('respecte le montant budgété de l’enveloppe, quels que soient les revenus', () => {
+    expect(plannedEnvelope(budget, 'lep-pea')).toBe(euros(350))
+    expect(balance(3000).unallocated).toBe(euros(1000))
+    expect(plannedEnvelope(budget, 'lep-pea')).toBe(euros(350))
+  })
+})
+
+describe('plannedEnvelope', () => {
+  it('rend zéro si l’enveloppe n’a pas de ligne de budget', () => {
+    expect(plannedEnvelope(budget, 'inconnue')).toBe(0)
+  })
+
+  it('rend zéro sur un budget vide', () => {
+    expect(plannedEnvelope([], 'lep-pea')).toBe(0)
   })
 })

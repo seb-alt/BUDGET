@@ -514,3 +514,51 @@
   opacity: 0.5;
   cursor: default;
 }
+
+/* --- Le solde du compte courant ------------------------------------------
+   Posé au-dessus des indicateurs du mois, parce qu'il ne dit pas la même
+   chose : c'est le seul chiffre de l'écran qui ne dépend pas du mois affiché.
+   Le 1er, quand le loyer est parti et que la paie n'est pas arrivée, c'est
+   lui qu'on vient voir. */
+
+.dash-balance {
+  appearance: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  text-align: left;
+  cursor: pointer;
+}
+
+.dash-balance-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.dash-balance-value {
+  font-size: 2rem;
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+/* Un découvert, lui, mérite la couleur d'alerte : c'est un fait, pas une
+   attente. */
+.dash-balance-value.is-negative {
+  color: var(--negative);
+}
+
+.dash-balance-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}

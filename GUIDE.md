@@ -142,17 +142,37 @@ croire que tu as trop dépensé alors que tu as juste épargné.
 
 ### 🏠 Accueil
 
-Le mois en cours. Quatre chiffres en haut, puis :
+Le mois en cours.
 
-- **Épargne du mois — proposition.** Ce que tu *devrais* verser ce mois-ci,
-  calculé sur ce que tu as réellement encaissé. C'est une proposition :
-  l'application ne vire rien à ta place.
+Tout en haut, **le solde de ton compte courant**. C'est le seul chiffre de
+l'écran qui ne dépend pas du mois affiché, et le plus utile au quotidien :
+« est-ce que je peux dépenser ? ». Il indique sur quoi il se fonde — ton dernier
+relevé de soldes, ou tes seules opérations enregistrées si tu n'en as jamais
+saisi. Appuie dessus pour mettre tes soldes à jour.
+
+Puis quatre chiffres, et :
+
+- **Ce mois-ci.** Tes revenus encaissés, moins ton budget, égale ce qui n'est
+  affecté à rien — ton matelas, qui reste sur ton compte. Puis la répartition de
+  l'enveloppe LEP/PEA que tu as budgétée, entre le LEP (tant qu'il n'est pas
+  plein) et le PEA. **C'est une proposition : l'application ne vire rien à ta
+  place** et n'a aucun lien avec ta banque.
 - **Trois cartes budgétaires** (Charges fixes, Épargne, Loisirs). Appuie sur
   une carte pour voir le détail par catégorie.
 - Le **camembert** de répartition, avec l'onglet Prévu / Réalisé.
 - Les **dernières opérations**.
 
 Les flèches en haut permettent de revenir sur les mois passés.
+
+> **« Non affecté »**, le quatrième chiffre, c'est ce que tes revenus laissent
+> au-delà de ton budget. Personne ne le dépense et personne ne l'épargne : il
+> reste sur ton compte.
+>
+> Si tes revenus ne couvrent pas encore ton budget, le même emplacement affiche
+> **« Revenus attendus »** — normal en début de mois, quand le loyer est parti
+> et que la paie n'est pas arrivée. Sur un **mois déjà terminé**, le même manque
+> devient **« Budget non couvert »**, en rouge : là, c'est un fait. Dans les
+> deux cas, l'application signale sans rien rogner d'elle-même.
 
 > **« Budget figé »** : dès qu'un mois est terminé, ses chiffres ne bougent
 > plus, même si tu changes ton budget après coup. Sans ça, ton historique se

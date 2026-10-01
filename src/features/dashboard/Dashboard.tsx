@@ -15,7 +15,7 @@ import { resolveMonthBudget } from '../../db/budgets'
 import { db } from '../../db/db'
 import { needsBackupReminder } from '../../domain/backup/backupFile'
 import { computeMicroSummary } from '../../domain/micro/microSummary'
-import { applyFlexibleEnvelope } from '../../domain/budget/budgetEngine'
+import { computeMonthBalance, plannedEnvelope } from '../../domain/budget/budgetEngine'
 import { computeMonthSummary } from '../../domain/budget/monthSummary'
 import { computeAccountBalances } from '../../domain/patrimony/accountBalance'
 import { addMonths, currentMonth, formatDayLabel, formatMonthLabel } from '../../utils/date'
@@ -47,7 +47,8 @@ export function Dashboard({
   const transactions = useLiveQuery(
     // Les dates sont des chaînes 'AAAA-MM-JJ' : tout le mois tient entre
     // '2026-09-01' et '2026-09-31', même pour les mois de 30 jours.
-    () => db.transactions.where('date').between(`${month}-01`, `${month}-31`, true, true).toArray(),
+    () =>
+      db.transactions.where('date').between(`${month}-01`, `${month}-31`, true, true).toArray(),
     [month],
   )
   const settings = useLiveQuery(() => db.settings.get(1), [])
@@ -71,24 +72,19 @@ export function Dashboard({
   )
 
   /**
-   * Le budget du mois passe par le moteur AVANT d'être résumé : la ligne de
-   * l'enveloppe flexible y est remplacée par le montant que la règle calcule.
-   * Sans ça, la carte Épargne afficherait la ligne fixe du budget pendant que
-   * la carte de proposition annoncerait autre chose.
+   * Ce que le budget laisse sur le compte — ou ce qui lui manque.
+   *
+   * Le budget n'est plus retouché avant d'être résumé : chaque ligne vaut ce
+   * que tu y as écrit, l'enveloppe LEP/PEA comprise. C'est le SURPLUS qui est
+   * calculé et affiché, au lieu d'être affecté d'office à l'épargne.
    */
-  const planned = useMemo(() => {
-    if (!categories || !budget || !settings) return undefined
-    return applyFlexibleEnvelope({
-      budget: budget.lines,
-      categories,
-      actualIncome,
-      flexibleCategoryId: settings.flexibleSavingsCategoryId,
-      assuranceVieMonthly: budget.assuranceVieMonthly,
-    })
-  }, [categories, budget, settings, actualIncome])
+  const balance = useMemo(() => {
+    if (!categories || !budget) return undefined
+    return computeMonthBalance({ actualIncome, budget: budget.lines, categories })
+  }, [categories, budget, actualIncome])
 
   const summary = useMemo(() => {
-    if (!accounts || !categories || !planned || !transactions) return undefined
+    if (!accounts || !categories || !budget || !transactions) return undefined
 
     const savingCategoryAccounts = Object.fromEntries(
       categories
@@ -101,10 +97,27 @@ export function Dashboard({
       transactions,
       accounts,
       categories,
-      budget: planned.budget,
+      budget: budget.lines,
       savingCategoryAccounts,
     })
-  }, [accounts, categories, planned, transactions, month])
+  }, [accounts, categories, budget, transactions, month])
+
+  /**
+   * Ce qu'il reste sur le compte courant, AUJOURD'HUI.
+   *
+   * C'est le chiffre qu'on vient chercher en début de mois, quand le loyer est
+   * parti et que la paie n'est pas encore arrivée : les indicateurs du mois
+   * sont alors tous à zéro ou dans le rouge, alors qu'il reste de quoi vivre.
+   *
+   * Volontairement pas borné au mois affiché : un solde n'est pas une mesure
+   * mensuelle. Il part du dernier relevé saisi et suit toutes les opérations.
+   */
+  const currentAccount = useMemo(() => {
+    if (!settings || !allTransactions || !snapshots) return undefined
+    return computeAccountBalances([settings.defaultAccountId], allTransactions, snapshots).get(
+      settings.defaultAccountId,
+    )
+  }, [settings, allTransactions, snapshots])
 
   const lepBalance = useMemo(() => {
     if (!settings || !allTransactions || !snapshots) return 0
@@ -135,8 +148,7 @@ export function Dashboard({
   }, [microInvoices, allTransactions, microSettings, month])
 
   const lastSnapshotDate = useMemo(
-    () =>
-      [...(snapshots ?? [])].sort((a, b) => b.date.localeCompare(a.date))[0]?.date,
+    () => [...(snapshots ?? [])].sort((a, b) => b.date.localeCompare(a.date))[0]?.date,
     [snapshots],
   )
 
@@ -161,11 +173,13 @@ export function Dashboard({
     return [...groups.entries()]
   }, [transactions])
 
-  if (!summary || !categories || !budget || !planned || !settings || !accounts) {
+  if (!summary || !categories || !budget || !balance || !settings || !accounts) {
     return <p className="dash-loading">Chargement…</p>
   }
 
   const isCurrentMonth = month === currentMonth()
+  const currentAccountName =
+    accounts.find((account) => account.id === settings.defaultAccountId)?.name ?? 'ton compte'
 
   return (
     <div className="dash">
@@ -198,11 +212,7 @@ export function Dashboard({
         )}
 
         {!isCurrentMonth && (
-          <button
-            type="button"
-            className="dash-today"
-            onClick={() => setMonth(currentMonth())}
-          >
+          <button type="button" className="dash-today" onClick={() => setMonth(currentMonth())}>
             Revenir au mois en cours
           </button>
         )}
@@ -220,6 +230,29 @@ export function Dashboard({
 
       <PendingRecurringCard />
 
+      {/* Le seul chiffre de l'écran qui ne dépend pas du mois affiché, et le
+          plus utile au quotidien : « est-ce que je peux dépenser ? ». */}
+      {currentAccount !== undefined && (
+        <button
+          type="button"
+          className="dash-balance"
+          onClick={onUpdateBalances}
+          aria-label={`Sur ${currentAccountName} : ${formatEurosCompact(currentAccount.balance)}. Mettre à jour mes soldes.`}
+        >
+          <span className="dash-balance-label">Sur {currentAccountName}</span>
+          <strong
+            className={`dash-balance-value tabular${currentAccount.balance < 0 ? ' is-negative' : ''}`}
+          >
+            {formatEurosCompact(currentAccount.balance)}
+          </strong>
+          <span className="dash-balance-note">
+            {currentAccount.since === undefined
+              ? 'Calculé sur tes seules opérations enregistrées — saisir un relevé'
+              : `D'après ton relevé du ${formatDayLabel(currentAccount.since)}`}
+          </span>
+        </button>
+      )}
+
       <section className="dash-indicators" aria-label="Indicateurs du mois">
         {/* Ni vert ni rouge ici : l'étiquette dit déjà « Entrées » ou « Sorties ».
             Peindre une dépense normale en rouge la ferait passer pour une
@@ -228,10 +261,24 @@ export function Dashboard({
         <Indicator label="Entrées du mois" amount={summary.income} tone="neutral" />
         <Indicator label="Sorties du mois" amount={summary.expenses} tone="neutral" />
         <Indicator label="Épargne du mois" amount={summary.savings} tone="accent" />
+        {/* Le matelas : ce que tes revenus laissent au-delà du budget, et qui
+            reste sur ton compte. Il n'est affecté à rien — c'est tout l'intérêt.
+
+            Quand il manque de l'argent, le mot dépend du TEMPS. Sur un mois en
+            cours, le 1er, rien n'est encaissé et tout le budget semble
+            découvert : ce n'est pas un déficit, c'est une paie qui n'est pas
+            encore arrivée. On parle donc de « revenus attendus », sans rouge.
+            Sur un mois révolu, en revanche, le manque est un fait. */}
         <Indicator
-          label="Loisirs restants"
-          amount={summary.leisureRemaining}
-          tone={summary.leisureRemaining < 0 ? 'negative' : 'neutral'}
+          label={
+            balance.deficit === 0
+              ? 'Non affecté'
+              : isCurrentMonth
+                ? 'Revenus attendus'
+                : 'Budget non couvert'
+          }
+          amount={balance.deficit > 0 ? balance.deficit : balance.unallocated}
+          tone={balance.deficit > 0 && !isCurrentMonth ? 'negative' : 'neutral'}
         />
       </section>
 
@@ -239,7 +286,8 @@ export function Dashboard({
           révolu n'aurait aucun sens, l'argent est déjà placé. */}
       {isCurrentMonth && (
         <SavingsPlanCard
-          savings={planned.savings}
+          envelope={plannedEnvelope(budget.lines, settings.flexibleSavingsCategoryId)}
+          balance={balance}
           actualIncome={actualIncome}
           lepBalance={lepBalance}
           lepThreshold={budget.lepThreshold}
@@ -266,7 +314,8 @@ export function Dashboard({
         // déborderait de son rail.
         const groupRatio = group.budget > 0 ? Math.min(group.spent / group.budget, 1) : 0
         const groupFilled = groupRatio * 100
-        const groupPercent = group.budget > 0 ? Math.round((group.spent / group.budget) * 100) : 0
+        const groupPercent =
+          group.budget > 0 ? Math.round((group.spent / group.budget) * 100) : 0
 
         return (
           /* --row-color descend dans toute la carte : la barre générale et les
@@ -285,7 +334,11 @@ export function Dashboard({
           >
             <summary>
               <span className="dash-card-title">
-                <span className="color-dot" style={{ background: card.color }} aria-hidden="true" />
+                <span
+                  className="color-dot"
+                  style={{ background: card.color }}
+                  aria-hidden="true"
+                />
                 {card.title}
               </span>
 
@@ -343,7 +396,8 @@ export function Dashboard({
                     <div className="dash-line-head">
                       <span>{category.name}</span>
                       <span className="tabular">
-                        {formatEurosCompact(progress.spent)} / {formatEurosCompact(progress.budget)}
+                        {formatEurosCompact(progress.spent)} /{' '}
+                        {formatEurosCompact(progress.budget)}
                       </span>
                     </div>
                     <div
@@ -353,7 +407,9 @@ export function Dashboard({
                     >
                       <div className="dash-bar-fill" style={{ width: `${ratio * 100}%` }} />
                     </div>
-                    <p className={`dash-line-rest${progress.remaining < 0 ? ' is-negative' : ''}`}>
+                    <p
+                      className={`dash-line-rest${progress.remaining < 0 ? ' is-negative' : ''}`}
+                    >
                       {progress.remaining < 0
                         ? `Dépassement : ${formatEurosCompact(-progress.remaining)}`
                         : `Reste : ${formatEurosCompact(progress.remaining)}`}

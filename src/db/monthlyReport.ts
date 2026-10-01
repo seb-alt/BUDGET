@@ -8,7 +8,7 @@
  * racontent deux choses différentes du même mois.
  *
  * Les chiffres ne sont pas recalculés ici. On appelle les mêmes fonctions que
- * le Dashboard — `computeMonthSummary`, `applyFlexibleEnvelope`,
+ * le Dashboard — `computeMonthSummary`, `computeMonthBalance`,
  * `computeAccountBalances`, `computeMicroSummary` — pour que le rapport dise
  * exactement ce que l'écran affiche. Un export qui diverge de l'écran est pire
  * que pas d'export du tout.
@@ -17,7 +17,7 @@
 import { resolveMonthBudget } from './budgets'
 import { db } from './db'
 import type { Account, IsoMonth, MicroInvoice, Transaction } from './types'
-import { applyFlexibleEnvelope } from '../domain/budget/budgetEngine'
+import { computeMonthBalance } from '../domain/budget/budgetEngine'
 import { computeMonthSummary } from '../domain/budget/monthSummary'
 import { computeMicroSummary } from '../domain/micro/microSummary'
 import { computeAccountBalances } from '../domain/patrimony/accountBalance'
@@ -95,15 +95,9 @@ export async function buildMonthlyReport(month: IsoMonth): Promise<MonthlyReport
     .filter((transaction) => transaction.type === 'income' && !transaction.isMicro)
     .reduce((total, transaction) => total + transaction.amount, 0)
 
-  // Le même passage par le moteur que sur l'accueil : sans lui, la ligne de
-  // l'enveloppe flexible serait celle du budget fixe et non celle du mois.
-  const planned = applyFlexibleEnvelope({
-    budget: budget.lines,
-    categories,
-    actualIncome,
-    flexibleCategoryId: settings.flexibleSavingsCategoryId,
-    assuranceVieMonthly: budget.assuranceVieMonthly,
-  })
+  // Le même calcul que sur l'accueil : ce que le budget laisse sur le compte,
+  // ou ce qui lui manque.
+  const balance = computeMonthBalance({ actualIncome, budget: budget.lines, categories })
 
   const savingCategoryAccounts = Object.fromEntries(
     categories
@@ -116,7 +110,7 @@ export async function buildMonthlyReport(month: IsoMonth): Promise<MonthlyReport
     transactions: allTransactions,
     accounts,
     categories,
-    budget: planned.budget,
+    budget: budget.lines,
     savingCategoryAccounts,
   })
 
@@ -189,6 +183,9 @@ export async function buildMonthlyReport(month: IsoMonth): Promise<MonthlyReport
     expenses: summary.expenses,
     savings: summary.savings,
     leisureRemaining: summary.leisureRemaining,
+    budgeted: balance.budgeted,
+    unallocated: balance.unallocated,
+    deficit: balance.deficit,
     groups: (['chargesFixes', 'epargne', 'loisirs'] as const).map((group) => ({
       title: GROUP_LABELS[group],
       budget: summary.byGroup[group].budget,

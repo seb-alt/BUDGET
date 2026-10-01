@@ -55,7 +55,10 @@ export function MonthlyReportView({ report }: MonthlyReportViewProps) {
         <Figure label="Entrées" value={formatEuros(report.income)} />
         <Figure label="Sorties" value={formatEuros(report.expenses)} />
         <Figure label="Épargne" value={formatEuros(report.savings)} accent />
-        <Figure label="Loisirs restants" value={formatEuros(report.leisureRemaining)} />
+        <Figure
+          label={report.deficit > 0 ? 'Budget non couvert' : 'Non affecté'}
+          value={formatEuros(report.deficit > 0 ? report.deficit : report.unallocated)}
+        />
       </section>
 
       <section className="report-block">
